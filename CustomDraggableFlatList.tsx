@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 
 export type Item = {
-  id: number;
+  id: string;
   height: number;
 };
 
@@ -18,7 +18,7 @@ type FlatListItem = {
 };
 
 type InternalItem = {
-  id: number | string;
+  id: string;
   height: number;
   type: string;
   y: number;
@@ -311,7 +311,7 @@ const CustomDraggableFlatList = ({
       <Animated.FlatList
         style={styles.list}
         ref={flatListRef}
-        keyExtractor={(item: InternalItem) => item.id + ''}
+        keyExtractor={(item: InternalItem) => item.id}
         data={preparedData}
         scrollEnabled={true}
         onScroll={onScroll}
@@ -337,7 +337,7 @@ const CustomItem = ({
 
   const handleSelected = useCallback(() => {
     setSelected(item);
-    onSelected({id: item.id as number, height: item.height});
+    onSelected({id: item.id, height: item.height});
   }, [item, onSelected, setSelected]);
 
   const spacerStyle = useMemo(() => {

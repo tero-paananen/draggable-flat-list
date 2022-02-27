@@ -1,16 +1,20 @@
 import React, {useMemo, useCallback} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import CustomDraggableFlatList from './CustomDraggableFlatList';
+import CustomDraggableFlatList, {Item} from './CustomDraggableFlatList';
 
 const ITEM_HEIGHT = 50;
 const ITEM_WIDTH = 300;
+
+type MyItem = Item & {
+  title?: string;
+};
 
 const App = () => {
   const data = useMemo(() => {
     const rows = [];
     for (let i = 0; i < 30; i++) {
       rows.push({
-        id: i,
+        id: i + '',
         type: 'item',
         title: 'Lorem ipsum dolor sit amet ' + i,
         height: ITEM_HEIGHT,
@@ -19,27 +23,27 @@ const App = () => {
     return rows;
   }, []);
 
-  const renderItem = ({item}) => {
+  const renderItem = ({item}: {item: MyItem}) => {
     return (
-      <View style={styles.itemContainer} id={item.id}>
+      <View style={styles.itemContainer} key={item.id}>
         <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
       </View>
     );
   };
 
-  const renderSelectedItem = ({item}) => {
+  const renderSelectedItem = ({item}: {item: MyItem}) => {
     return (
-      <View style={styles.selectedItemContainer} id={item.id}>
+      <View style={styles.selectedItemContainer} key={item.id}>
         <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
       </View>
     );
   };
 
-  const handleSelected = useCallback(item => {
+  const handleSelected = useCallback((item: Item) => {
     console.log('handleSelected ', {item});
   }, []);
 
-  const handleMove = useCallback((fromIndex, toIndex) => {
+  const handleMove = useCallback((fromIndex: number, toIndex: number) => {
     console.log('handleMove ', {fromIndex, toIndex});
     console.log('TODO: move data and set new one into flatlist');
   }, []);
