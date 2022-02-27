@@ -142,36 +142,40 @@ const CustomDraggableFlatList = ({
   };
 
   const handleScrollToPosition = () => {
+    // scroll flatlist to up or down
     if (scrollTimerRef.current) {
       return;
     }
-    const cancel = () => {
+
+    const cancelScrolling = () => {
       scrollTimerRef.current && clearTimeout(scrollTimerRef.current);
       scrollTimerRef.current = null;
     };
 
-    const tresholdTop = layoutRef.current.height * 0.1;
-    const tresholdBottom = layoutRef.current.height * 0.9;
+    const userScrollingUp =
+      moveStartPosYRef.current > moveCurrentPosYRef.current; // user is panning up or down
+    const tresholdTop = layoutRef.current.height * 0.1; // top view area for scrolling up
+    const tresholdBottom = layoutRef.current.height * 0.9; // bottom view are for scrolling down
     if (
       moveCurrentPosYRef.current > tresholdTop &&
       moveCurrentPosYRef.current < tresholdBottom
     ) {
-      cancel();
+      cancelScrolling();
       return;
     }
 
-    const scrollUp = moveStartPosYRef.current > moveCurrentPosYRef.current;
-    const offset = scrollOffsetY.current + (scrollUp ? -30 : 30);
-    flatListRef.current?.scrollToOffset({offset, animated: true});
+    const offset = scrollOffsetY.current + (userScrollingUp ? -30 : 30); // amount of scrolling
+    flatListRef.current?.scrollToOffset({offset, animated: true}); // scroll
 
+    // scroll again after delayed if user is still panning into same direction
     scrollTimerRef.current = setTimeout(() => {
       scrollTimerRef.current = null;
-      const scrollUpOnTime =
+      const userScrollingUpWhenTime =
         moveStartPosYRef.current > moveCurrentPosYRef.current;
-      if (scrollUp === scrollUpOnTime) {
+      if (userScrollingUp === userScrollingUpWhenTime) {
         handleScrollToPosition();
       } else {
-        cancel();
+        cancelScrolling();
       }
     }, 24);
   };
