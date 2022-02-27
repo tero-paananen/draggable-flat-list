@@ -2,6 +2,10 @@
   "name": "DraggableFlatList",
   "version": "0.0.1",
   "private": true,
+  "author": {
+    "name": "Tero Paananen",
+    "email": "tepaanan@gmail.com"
+  },
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
@@ -23,7 +27,7 @@
     "@babel/runtime": "^7.12.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "@types/react": "^17.0.39",
-    "@types/react-native": "^0.66.16",
+    "@types/react-native": "^0.65.1",
     "babel-jest": "^26.6.3",
     "eslint": "7.14.0",
     "jest": "^26.6.3",
