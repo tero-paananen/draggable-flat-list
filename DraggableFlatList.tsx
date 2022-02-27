@@ -203,7 +203,15 @@ const CustomDraggableFlatList = ({
       return;
     }
 
-    const amount = Platform.OS === 'windows' ? 30 : 50;
+    // cap is min pointer cap to top or bottom of FlatList
+    const cap = Math.min(
+      moveCurrentPosYRef.current,
+      layoutRef.current.height - moveCurrentPosYRef.current,
+    );
+
+    // amount of fixels to scroll in one animation request
+    // if pointer (cap value) is near top of bottom is scroll animation faster
+    const amount = cap < 5 ? 100 : Platform.OS === 'windows' ? 30 : 50;
     const offset = scrollOffsetY.current + (userScrollingUp ? -amount : amount); // amount of scrolling
     flatListRef.current?.scrollToOffset({offset, animated: true}); // scroll
 

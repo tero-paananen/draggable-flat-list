@@ -11,7 +11,7 @@ type MyItem = Item & {
 
 const App = () => {
   const data = useMemo(() => {
-    return Array.from({length: 20}, (_, i) => {
+    return Array.from({length: 40}, (_, i) => {
       return {
         id: i + '',
         title: 'Lorem ipsum dolor sit amet ' + i,
