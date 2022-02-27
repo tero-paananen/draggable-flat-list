@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "target": "esnext",
+    "allowJs": true,
+    "strict": true,
+    "lib": ["esnext"],
+    "moduleResolution": "node",
+    "noImplicitReturns": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "jsx": "react-native",
+    "module": "esnext",
+    "allowSyntheticDefaultImports": true,
+    "useUnknownInCatchVariables": false,
+    "paths": {
+      "*": ["src/*"]
+    }
+  },
+  "include": ["*"]
+}

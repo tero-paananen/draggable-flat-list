@@ -1,12 +1,31 @@
 import React, {useMemo, useState, useCallback, useRef} from 'react';
 import {
-  FlatList,
   View,
   StyleSheet,
   PanResponder,
   Animated,
   TouchableWithoutFeedback,
+  FlatList,
 } from 'react-native';
+
+export type Item = {
+  id: number;
+  height: number;
+};
+
+type FlatListItem = {
+  item: InternalItem;
+};
+
+type InternalItem = {
+  id: number | string;
+  height: number;
+  type: string;
+  y: number;
+  itemId?: number | string;
+};
+
+type Layout = {y: number; height: number};
 
 const CustomDraggableFlatList = ({
   data,
@@ -15,19 +34,28 @@ const CustomDraggableFlatList = ({
   style,
   onSelected,
   onHandleMove,
+}: {
+  data: Item[];
+  renderItem: (itemData: FlatListItem) => JSX.Element;
+  renderSelectedItem: (itemData: FlatListItem) => JSX.Element;
+  style: any;
+  onSelected: (item: Item) => void;
+  onHandleMove: (fromIndex: number, toIndex: number) => void;
 }) => {
-  const [selected, setSelected] = useState(undefined);
-  const [below, setBelow] = useState(undefined);
-  const [layout, setLayout] = useState({layout: undefined});
+  const [selected, setSelected] = useState<InternalItem | undefined>(undefined);
+  const [below, setBelow] = useState<InternalItem | undefined>(undefined);
+  const [layout, setLayout] = useState<{layout: Layout | undefined}>({
+    layout: undefined,
+  });
   const [panning, setPanning] = useState(false);
 
-  const selectedRef = useRef(undefined);
-  const layoutRef = useRef(undefined);
+  const selectedRef = useRef<InternalItem | undefined>(undefined);
+  const layoutRef = useRef<Layout | undefined>(undefined);
   const previousOffsetY = useRef(0);
   const scrollOffsetY = useRef(0);
-  const flatListRef = useRef(null);
+  const flatListRef = useRef<FlatList | null>(null);
 
-  const scrollTimerRef = useRef(null);
+  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const moveStartPosYRef = useRef(-1);
   const moveCurrentPosYRef = useRef(-1);
 
@@ -37,10 +65,10 @@ const CustomDraggableFlatList = ({
     // https://reactnative.dev/docs/panresponder
     // https://eveningkid.medium.com/the-basics-of-react-native-gestures-23061b5e89cf
     PanResponder.create({
-      onStartShouldSetPanResponder: (evt, gestureState) => false,
-      onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
 
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
+      onMoveShouldSetPanResponder: () => {
         if (selectedRef.current) {
           // When user has done item selection we start capturing panning
           return true;
@@ -48,11 +76,14 @@ const CustomDraggableFlatList = ({
         // User can scroll FlatList
         return false;
       },
-      //onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
-      onPanResponderGrant: (evt, gestureState) => {},
+      onMoveShouldSetPanResponderCapture: () => true,
+      onPanResponderGrant: () => {},
 
-      onPanResponderMove: (event, gestureState) => {
+      onPanResponderMove: (event: any, gestureState: any) => {
         const {moveX, moveY} = gestureState;
+        if (!layoutRef.current) {
+          return;
+        }
         if (moveStartPosYRef.current === -1) {
           moveStartPosYRef.current = moveY - layoutRef.current.y;
         }
@@ -65,26 +96,28 @@ const CustomDraggableFlatList = ({
         }
       },
 
-      onPanResponderTerminationRequest: (evt, gestureState) => true,
+      onPanResponderTerminationRequest: () => true,
 
-      onPanResponderRelease: (evt, gestureState) => {
+      onPanResponderRelease: (event: any, gestureState: any) => {
         const {moveY} = gestureState;
         const releasedOnItem = itemFromTouchPoint(moveY);
-        handleMove(selectedRef.current, releasedOnItem);
+        selectedRef.current &&
+          releasedOnItem &&
+          handleMove(selectedRef.current, releasedOnItem);
         endPanning();
       },
 
-      onPanResponderTerminate: (evt, gestureState) => {
+      onPanResponderTerminate: () => {
         endPanning();
       },
 
-      onShouldBlockNativeResponder: (evt, gestureState) => {
+      onShouldBlockNativeResponder: () => {
         return true;
       },
     }),
   ).current;
 
-  const handleMove = (sourceItem, targetItem) => {
+  const handleMove = (sourceItem: InternalItem, targetItem: InternalItem) => {
     if (sourceItem && targetItem) {
       const fromIndex = dataIndexFromItem(sourceItem);
       const toIndex = dataIndexFromItem(targetItem);
@@ -101,26 +134,31 @@ const CustomDraggableFlatList = ({
     moveCurrentPosYRef.current = -1;
     if (scrollTimerRef.current) {
       clearTimeout(scrollTimerRef.current);
-      scrollTimerRef.current = false;
+      scrollTimerRef.current = null;
     }
   };
 
-  const showWhereToDrop = moveY => {
+  const showWhereToDrop = (moveY: number) => {
     const item = itemFromTouchPoint(moveY);
     setBelow(item);
   };
 
-  const itemFromTouchPoint = moveY => {
+  const itemFromTouchPoint = (moveY: number) => {
+    if (!layoutRef.current) {
+      return;
+    }
     let ret;
     const y = moveY - layoutRef.current.y + scrollOffsetY.current;
-    const index = preparedData.findIndex(d => y > d.y && y < d.y + d.height);
+    const index = preparedData.findIndex(
+      (d: InternalItem) => y > d.y && y < d.y + d.height,
+    );
     if (index !== -1) {
       ret = preparedData[index];
     }
     return ret;
   };
 
-  const dataIndexFromItem = item => {
+  const dataIndexFromItem = (item: InternalItem) => {
     if (item?.type === 'spacer') {
       return data.findIndex(d => d.id === item.itemId);
     } else {
@@ -128,7 +166,7 @@ const CustomDraggableFlatList = ({
     }
   };
 
-  const isMovingEnought = moveY => {
+  const isMovingEnought = (moveY: number) => {
     const TRESHOLD_PIXELS = 4;
     if (
       selectedRef.current &&
@@ -143,7 +181,7 @@ const CustomDraggableFlatList = ({
 
   const handleScrollToPosition = () => {
     // scroll flatlist to up or down
-    if (scrollTimerRef.current) {
+    if (scrollTimerRef.current || !layoutRef.current) {
       return;
     }
 
@@ -181,10 +219,10 @@ const CustomDraggableFlatList = ({
   };
 
   const preparedData = useMemo(() => {
-    const ret = [];
+    const ret: InternalItem[] = [];
     let y = 0;
 
-    data.map((item, index) => {
+    data.map(item => {
       const itemHeight = item.height; // default item height
       let spacerHeight = 1; // default spacer height
 
@@ -218,12 +256,10 @@ const CustomDraggableFlatList = ({
     return ret;
   }, [below?.id, data]);
 
-  //console.log('> render', {selected, below});
-
   selectedRef.current = selected;
   layoutRef.current = layout?.layout;
 
-  const renderFlatListItem = itemData => {
+  const renderFlatListItem = (itemData: FlatListItem) => {
     if (!panning && selected?.id === itemData.item.id) {
       return renderSelectedItem(itemData);
     } else {
@@ -255,11 +291,11 @@ const CustomDraggableFlatList = ({
     }
   };
 
-  const handleLayout = useCallback(e => {
+  const handleLayout = useCallback((e: any) => {
     setLayout({layout: e.nativeEvent.layout});
   }, []);
 
-  const onScroll = useCallback(e => {
+  const onScroll = useCallback((e: any) => {
     scrollOffsetY.current = e.nativeEvent.contentOffset.y;
   }, []);
 
@@ -275,7 +311,7 @@ const CustomDraggableFlatList = ({
       <Animated.FlatList
         style={styles.list}
         ref={flatListRef}
-        keyExtractor={item => item.id}
+        keyExtractor={(item: InternalItem) => item.id + ''}
         data={preparedData}
         scrollEnabled={true}
         onScroll={onScroll}
@@ -286,12 +322,22 @@ const CustomDraggableFlatList = ({
   );
 };
 
-const CustomItem = ({itemData, setSelected, onSelected, children}) => {
+const CustomItem = ({
+  itemData,
+  setSelected,
+  onSelected,
+  children,
+}: {
+  itemData: FlatListItem;
+  setSelected: any;
+  onSelected: (item: Item) => void;
+  children?: JSX.Element;
+}) => {
   const {item} = itemData;
 
   const handleSelected = useCallback(() => {
     setSelected(item);
-    onSelected(item);
+    onSelected({id: item.id as number, height: item.height});
   }, [item, onSelected, setSelected]);
 
   const spacerStyle = useMemo(() => {
@@ -309,7 +355,7 @@ const CustomItem = ({itemData, setSelected, onSelected, children}) => {
       </TouchableWithoutFeedback>
     );
   } else {
-    return <View style={spacerStyle} id={item.id} />;
+    return <View style={spacerStyle} key={item.id + ''} />;
   }
 };
 
