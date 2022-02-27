@@ -35,13 +35,21 @@ const CustomDraggableFlatList = ({
 
   const panResponder = React.useRef(
     // https://reactnative.dev/docs/panresponder
+    // https://eveningkid.medium.com/the-basics-of-react-native-gestures-23061b5e89cf
     PanResponder.create({
       onStartShouldSetPanResponder: (evt, gestureState) => false,
       onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
 
-      onMoveShouldSetPanResponder: (evt, gestureState) => true,
-      onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        if (selectedRef.current) {
+          // When user has done item selection we start capturing panning
+          return true;
+        }
+        // User can scroll FlatList
+        return false;
 
+      },
+      //onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
       onPanResponderGrant: (evt, gestureState) => {},
 
       onPanResponderMove: (event, gestureState) => {
