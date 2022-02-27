@@ -36,7 +36,7 @@ const App = () => {
     );
   };
 
-  const handleSelected = useCallback((item: Item) => {
+  const handleSelected = useCallback((item: Item | undefined) => {
     console.log('handleSelected ', {item});
   }, []);
 

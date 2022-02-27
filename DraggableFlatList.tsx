@@ -40,7 +40,7 @@ const CustomDraggableFlatList = ({
   renderItem: (itemData: FlatListItem) => JSX.Element;
   renderSelectedItem: (itemData: FlatListItem) => JSX.Element;
   style: any;
-  onSelected: (item: Item) => void;
+  onSelected: (item: Item | undefined) => void;
   onHandleMove: (fromIndex: number, toIndex: number) => void;
 }) => {
   const [selected, setSelected] = useState<InternalItem | undefined>(undefined);
@@ -266,15 +266,24 @@ const CustomDraggableFlatList = ({
 
   const handleItemSelection = useCallback(
     (item: InternalItem) => {
-      setSelected(item);
-      onSelected({id: item.id, height: item.height});
+      if (selected?.id === item.id) {
+        setSelected(undefined);
+        onSelected(undefined);
+      } else {
+        setSelected(item);
+        onSelected({id: item.id, height: item.height});
+      }
     },
-    [onSelected],
+    [onSelected, selected],
   );
 
   const renderFlatListItem = (itemData: FlatListItem) => {
     if (!panning && selected?.id === itemData.item.id) {
-      return renderSelectedItem(itemData);
+      return (
+        <CustomItem itemData={itemData} onSelected={handleItemSelection}>
+          {renderSelectedItem(itemData)}
+        </CustomItem>
+      );
     } else {
       return (
         <CustomItem itemData={itemData} onSelected={handleItemSelection}>
