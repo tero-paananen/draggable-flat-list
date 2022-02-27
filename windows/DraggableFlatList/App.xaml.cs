@@ -25,7 +25,7 @@ namespace DraggableFlatList
 #endif
 
 #if DEBUG
-            InstanceSettings.UseDeveloperSupport = false;
+            InstanceSettings.UseDeveloperSupport = true;
 #else
             InstanceSettings.UseDeveloperSupport = false;
 #endif
