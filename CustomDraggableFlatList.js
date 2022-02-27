@@ -47,7 +47,6 @@ const CustomDraggableFlatList = ({
         }
         // User can scroll FlatList
         return false;
-
       },
       //onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
       onPanResponderGrant: (evt, gestureState) => {},
@@ -236,7 +235,7 @@ const CustomDraggableFlatList = ({
   };
 
   const renderFlyingItem = () => {
-    if (selected?.id && panning && layout.layout) {
+    if (selected && panning && layout.layout) {
       return (
         <Animated.View
           style={[
