@@ -14,13 +14,5 @@ Development setup
 "react-native-windows": "0.65.8"
 ```
 
----
 
-Example of using component
-
-TODO: 
-
-
-
-
-
+https://user-images.githubusercontent.com/54746036/155878956-2913dd08-036c-48d7-b2a1-83e2709b55d1.mov
