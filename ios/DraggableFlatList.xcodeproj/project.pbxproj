@@ -145,7 +145,6 @@
 				00BB4910A5E6D93A2014116F /* Pods-DraggableFlatList-DraggableFlatListTests.debug.xcconfig */,
 				A6C82EEBB748128ABA08D923 /* Pods-DraggableFlatList-DraggableFlatListTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -500,6 +499,7 @@
 				PRODUCT_NAME = DraggableFlatList;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -524,6 +524,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = DraggableFlatList;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
