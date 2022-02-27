@@ -1,6 +1,6 @@
 import React, {useMemo, useCallback} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import CustomDraggableFlatList, {Item} from './CustomDraggableFlatList';
+import DraggableFlatList, {Item} from './DraggableFlatList';
 
 const ITEM_HEIGHT = 50;
 const ITEM_WIDTH = 300;
@@ -48,7 +48,7 @@ const App = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header} />
-      <CustomDraggableFlatList
+      <DraggableFlatList
         style={styles.list}
         data={data}
         renderItem={renderItem}

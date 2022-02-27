@@ -58,7 +58,7 @@ const handleMove = useCallback((fromIndex: number, toIndex: number) => {
 return (
   <View style={styles.container}>
     <View style={styles.header} />
-    <CustomDraggableFlatList
+    <DraggableFlatList
       style={styles.list}
       data={data}
       renderItem={renderItem}

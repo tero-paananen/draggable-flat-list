@@ -76,7 +76,7 @@ const CustomDraggableFlatList = ({
         // User can scroll FlatList
         return false;
       },
-      onMoveShouldSetPanResponderCapture: () => true,
+      //onMoveShouldSetPanResponderCapture: () => true, // iOS: FlatList is not scrollable if true
       onPanResponderGrant: () => {},
 
       onPanResponderMove: (event: any, gestureState: any) => {
