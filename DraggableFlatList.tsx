@@ -264,15 +264,20 @@ const CustomDraggableFlatList = ({
   selectedRef.current = selected;
   layoutRef.current = layout?.layout;
 
+  const handleItemSelection = useCallback(
+    (item: InternalItem) => {
+      setSelected(item);
+      onSelected({id: item.id, height: item.height});
+    },
+    [onSelected],
+  );
+
   const renderFlatListItem = (itemData: FlatListItem) => {
     if (!panning && selected?.id === itemData.item.id) {
       return renderSelectedItem(itemData);
     } else {
       return (
-        <CustomItem
-          itemData={itemData}
-          onSelected={onSelected}
-          setSelected={setSelected}>
+        <CustomItem itemData={itemData} onSelected={handleItemSelection}>
           {renderItem(itemData)}
         </CustomItem>
       );
@@ -329,21 +334,18 @@ const CustomDraggableFlatList = ({
 
 const CustomItem = ({
   itemData,
-  setSelected,
   onSelected,
   children,
 }: {
   itemData: FlatListItem;
-  setSelected: any;
-  onSelected: (item: Item) => void;
+  onSelected: (item: InternalItem) => void;
   children?: JSX.Element;
 }) => {
   const {item} = itemData;
 
   const handleSelected = useCallback(() => {
-    setSelected(item);
-    onSelected({id: item.id, height: item.height});
-  }, [item, onSelected, setSelected]);
+    onSelected(item);
+  }, [item, onSelected]);
 
   const spacerStyle = useMemo(() => {
     const backgroundColor =
