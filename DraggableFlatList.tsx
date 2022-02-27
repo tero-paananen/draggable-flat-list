@@ -6,6 +6,7 @@ import {
   Animated,
   TouchableWithoutFeedback,
   FlatList,
+  Platform,
 } from 'react-native';
 
 export type Item = {
@@ -202,20 +203,24 @@ const CustomDraggableFlatList = ({
       return;
     }
 
-    const offset = scrollOffsetY.current + (userScrollingUp ? -30 : 30); // amount of scrolling
+    const amount = Platform.OS === 'windows' ? 30 : 50;
+    const offset = scrollOffsetY.current + (userScrollingUp ? -amount : amount); // amount of scrolling
     flatListRef.current?.scrollToOffset({offset, animated: true}); // scroll
 
     // scroll again after delayed if user is still panning into same direction
-    scrollTimerRef.current = setTimeout(() => {
-      scrollTimerRef.current = null;
-      const userScrollingUpWhenTime =
-        moveStartPosYRef.current > moveCurrentPosYRef.current;
-      if (userScrollingUp === userScrollingUpWhenTime) {
-        handleScrollToPosition();
-      } else {
-        cancelScrolling();
-      }
-    }, 24);
+    scrollTimerRef.current = setTimeout(
+      () => {
+        scrollTimerRef.current = null;
+        const userScrollingUpWhenTime =
+          moveStartPosYRef.current > moveCurrentPosYRef.current;
+        if (userScrollingUp === userScrollingUpWhenTime) {
+          handleScrollToPosition();
+        } else {
+          cancelScrolling();
+        }
+      },
+      Platform.OS === 'windows' ? 30 : 200,
+    );
   };
 
   const preparedData = useMemo(() => {
@@ -295,7 +300,7 @@ const CustomDraggableFlatList = ({
     setLayout({layout: e.nativeEvent.layout});
   }, []);
 
-  const onScroll = useCallback((e: any) => {
+  const handleScroll = useCallback((e: any) => {
     scrollOffsetY.current = e.nativeEvent.contentOffset.y;
   }, []);
 
@@ -314,7 +319,7 @@ const CustomDraggableFlatList = ({
         keyExtractor={(item: InternalItem) => item.id}
         data={preparedData}
         scrollEnabled={true}
-        onScroll={onScroll}
+        onScroll={handleScroll}
         renderItem={renderFlatListItem}
       />
       {renderFlyingItem()}
