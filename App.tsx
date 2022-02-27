@@ -11,16 +11,13 @@ type MyItem = Item & {
 
 const App = () => {
   const data = useMemo(() => {
-    const rows = [];
-    for (let i = 0; i < 30; i++) {
-      rows.push({
+    return Array.from({length: 20}, (_, i) => {
+      return {
         id: i + '',
-        type: 'item',
         title: 'Lorem ipsum dolor sit amet ' + i,
         height: ITEM_HEIGHT,
-      });
-    }
-    return rows;
+      };
+    });
   }, []);
 
   const renderItem = ({item}: {item: MyItem}) => {
