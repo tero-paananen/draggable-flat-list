@@ -48,17 +48,17 @@ const CustomDraggableFlatList = ({
   const [layout, setLayout] = useState<{layout: Layout | undefined}>({
     layout: undefined,
   });
-  const [panning, setPanning] = useState(false);
 
+  const panningRef = useRef(false);
   const selectedRef = useRef<InternalItem | undefined>(undefined);
   const layoutRef = useRef<Layout | undefined>(undefined);
   const previousOffsetY = useRef(0);
-  const scrollOffsetY = useRef(0);
   const flatListRef = useRef<FlatList | null>(null);
 
-  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const moveStartPosYRef = useRef(-1);
   const moveCurrentPosYRef = useRef(-1);
+  const scrollAnimationRunning = useRef(false);
+  const scrollOffsetY = useRef(0);
 
   const pan = useRef(new Animated.ValueXY()).current;
 
@@ -90,9 +90,9 @@ const CustomDraggableFlatList = ({
         }
         moveCurrentPosYRef.current = moveY - layoutRef.current.y;
         pan.setValue({x: moveX, y: moveY});
-        setPanning(true);
+        panningRef.current = true;
         if (isMovingEnought(moveY)) {
-          !scrollTimerRef.current && handleScrollToPosition();
+          handleScrollToPosition();
           showWhereToDrop(moveY);
         }
       },
@@ -130,13 +130,10 @@ const CustomDraggableFlatList = ({
     setSelected(undefined);
     setBelow(undefined);
     pan.setValue({x: 0, y: 0});
-    setPanning(false);
+    panningRef.current = false;
     moveStartPosYRef.current = -1;
     moveCurrentPosYRef.current = -1;
-    if (scrollTimerRef.current) {
-      clearTimeout(scrollTimerRef.current);
-      scrollTimerRef.current = null;
-    }
+    scrollAnimationRunning.current = false;
   };
 
   const showWhereToDrop = (moveY: number) => {
@@ -182,14 +179,13 @@ const CustomDraggableFlatList = ({
 
   const handleScrollToPosition = () => {
     // scroll flatlist to up or down
-    if (scrollTimerRef.current || !layoutRef.current) {
+    if (
+      !panningRef.current ||
+      scrollAnimationRunning.current ||
+      !layoutRef.current
+    ) {
       return;
     }
-
-    const cancelScrolling = () => {
-      scrollTimerRef.current && clearTimeout(scrollTimerRef.current);
-      scrollTimerRef.current = null;
-    };
 
     const userScrollingUp =
       moveStartPosYRef.current > moveCurrentPosYRef.current; // user is panning up or down
@@ -199,7 +195,7 @@ const CustomDraggableFlatList = ({
       moveCurrentPosYRef.current > tresholdTop &&
       moveCurrentPosYRef.current < tresholdBottom
     ) {
-      cancelScrolling();
+      // No scrolling
       return;
     }
 
@@ -211,24 +207,14 @@ const CustomDraggableFlatList = ({
 
     // amount of fixels to scroll in one animation request
     // if pointer (cap value) is near top of bottom is scroll animation faster
-    const amount = cap < 5 ? 100 : Platform.OS === 'windows' ? 30 : 50;
+    const amount = cap < 5 ? 75 : Platform.OS === 'windows' ? 30 : 50;
     const offset = scrollOffsetY.current + (userScrollingUp ? -amount : amount); // amount of scrolling
+    if (offset < 0) {
+      // Try to scroll too high
+      return;
+    }
+    scrollAnimationRunning.current = true;
     flatListRef.current?.scrollToOffset({offset, animated: true}); // scroll
-
-    // scroll again after delayed if user is still panning into same direction
-    scrollTimerRef.current = setTimeout(
-      () => {
-        scrollTimerRef.current = null;
-        const userScrollingUpWhenTime =
-          moveStartPosYRef.current > moveCurrentPosYRef.current;
-        if (userScrollingUp === userScrollingUpWhenTime) {
-          handleScrollToPosition();
-        } else {
-          cancelScrolling();
-        }
-      },
-      Platform.OS === 'windows' ? 30 : 200,
-    );
   };
 
   const preparedData = useMemo(() => {
@@ -286,7 +272,7 @@ const CustomDraggableFlatList = ({
   );
 
   const renderFlatListItem = (itemData: FlatListItem) => {
-    if (!panning && selected?.id === itemData.item.id) {
+    if (!panningRef.current && selected?.id === itemData.item.id) {
       return (
         <CustomItem itemData={itemData} onSelected={handleItemSelection}>
           {renderSelectedItem(itemData)}
@@ -302,7 +288,7 @@ const CustomDraggableFlatList = ({
   };
 
   const renderFlyingItem = () => {
-    if (selected && panning && layout.layout) {
+    if (selected && panningRef.current && layout.layout) {
       return (
         <Animated.View
           style={[
@@ -324,6 +310,12 @@ const CustomDraggableFlatList = ({
 
   const handleScroll = useCallback((e: any) => {
     scrollOffsetY.current = e.nativeEvent.contentOffset.y;
+    scrollAnimationRunning.current = false;
+    panningRef.current && handleScrollToPosition();
+  }, []);
+
+  const handleOnEndReached = useCallback(() => {
+    scrollAnimationRunning.current = false;
   }, []);
 
   const containerStyle = useMemo(() => {
@@ -341,6 +333,9 @@ const CustomDraggableFlatList = ({
         keyExtractor={(item: InternalItem) => item.id}
         data={preparedData}
         scrollEnabled={true}
+        onEndReached={handleOnEndReached}
+        onEndReachedThreshold={0}
+        scrollEventThrottle={100} // scrollEventThrottle does this work on Windows?
         onScroll={handleScroll}
         renderItem={renderFlatListItem}
       />
