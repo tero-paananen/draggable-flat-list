@@ -321,6 +321,10 @@ const CustomDraggableFlatList = ({
     return {...styles.container, ...style};
   }, [style]);
 
+  const extraData = useMemo(() => {
+    return {below, selected};
+  }, [below, selected]);
+
   return (
     <View
       style={containerStyle}
@@ -331,7 +335,7 @@ const CustomDraggableFlatList = ({
         ref={flatListRef}
         keyExtractor={(item: InternalItem) => item.id}
         data={preparedData}
-        extraData={{id: below?.id}}
+        extraData={extraData}
         scrollEnabled={true}
         onEndReachedThreshold={0}
         scrollEventThrottle={0}
