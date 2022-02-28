@@ -134,7 +134,8 @@ const CustomDraggableFlatList = ({
     if (sourceItem && targetItem) {
       const fromIndex = dataIndexFromItem(sourceItem);
       const toIndex = dataIndexFromItem(targetItem);
-      onHandleMove(fromIndex, toIndex);
+      console.log("TODO: handleMove",[fromIndex, toIndex]);
+      //onHandleMove(fromIndex, toIndex);
     }
   };
 
@@ -160,7 +161,7 @@ const CustomDraggableFlatList = ({
     let ret;
     const y = moveY - layoutRef.current.y + scrollOffsetY.current;
     const index = preparedData.findIndex(
-      (d: InternalItem) => y > d.y && y < d.y + d.height,
+      (d: InternalItem) => y > d.y && y < d.y + d.height && d.type === 'item',
     );
     if (index !== -1) {
       ret = preparedData[index];
