@@ -1,6 +1,7 @@
-import React, {useMemo, useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import DraggableFlatList, {Item} from './DraggableFlatList';
+import {arrayMoveImmutable} from 'array-move';
 
 const ITEM_HEIGHT = 50;
 const ITEM_WIDTH = 300;
@@ -9,16 +10,16 @@ type MyItem = Item & {
   title?: string;
 };
 
+const INITIAL_DATA = Array.from({length: 20}, (_, i) => {
+  return {
+    id: i + '',
+    title: 'Lorem ipsum dolor sit amet ' + i,
+    height: ITEM_HEIGHT,
+  };
+});
+
 const App = () => {
-  const data = useMemo(() => {
-    return Array.from({length: 40}, (_, i) => {
-      return {
-        id: i + '',
-        title: 'Lorem ipsum dolor sit amet ' + i,
-        height: ITEM_HEIGHT,
-      };
-    });
-  }, []);
+  const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
 
   const renderItem = ({item}: {item: MyItem}) => {
     return (
@@ -40,10 +41,14 @@ const App = () => {
     console.log('handleSelected ', {item});
   }, []);
 
-  const handleMove = useCallback((fromIndex: number, toIndex: number) => {
-    console.log('handleMove ', {fromIndex, toIndex});
-    console.log('TODO: move data and set new one into flatlist');
-  }, []);
+  const handleMove = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      console.log('handleMove ', {fromIndex, toIndex});
+      const newData = arrayMoveImmutable(data, fromIndex, toIndex); // https://www.npmjs.com/package/array-move
+      setData(newData);
+    },
+    [data],
+  );
 
   return (
     <View style={styles.container}>
