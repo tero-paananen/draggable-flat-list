@@ -8,6 +8,7 @@ import {
   FlatList,
   Platform,
 } from 'react-native';
+import debounce from 'lodash/debounce';
 
 export type Item = {
   id: string;
@@ -55,12 +56,11 @@ const CustomDraggableFlatList = ({
   const previousOffsetY = useRef(0);
   const flatListRef = useRef<FlatList | null>(null);
 
+  const pan = useRef(new Animated.ValueXY()).current;
   const moveStartPosYRef = useRef(-1);
   const moveCurrentPosYRef = useRef(-1);
   const scrollAnimationRunning = useRef(false);
   const scrollOffsetY = useRef(0);
-
-  const pan = useRef(new Animated.ValueXY()).current;
 
   const panResponder = React.useRef(
     // https://reactnative.dev/docs/panresponder
@@ -117,6 +117,18 @@ const CustomDraggableFlatList = ({
       },
     }),
   ).current;
+
+  const callOnScroll = useRef(
+    debounce(
+      () => {
+        if (panningRef.current) {
+          scrollAnimationRunning.current = false;
+        }
+      },
+      1000,
+      {leading: false, trailing: true},
+    ),
+  );
 
   const handleMove = (sourceItem: InternalItem, targetItem: InternalItem) => {
     if (sourceItem && targetItem) {
@@ -215,6 +227,7 @@ const CustomDraggableFlatList = ({
     }
     scrollAnimationRunning.current = true;
     flatListRef.current?.scrollToOffset({offset, animated: true}); // scroll
+    callOnScroll.current(); // call onScroll delayed because it is not always called on end of FlatList reached
   };
 
   const preparedData = useMemo(() => {
