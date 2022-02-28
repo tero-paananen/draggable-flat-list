@@ -57,8 +57,8 @@ const CustomDraggableFlatList = ({
   const flatListRef = useRef<FlatList | null>(null);
 
   const pan = useRef(new Animated.ValueXY()).current;
-  const moveStartPosYRef = useRef(-1);
-  const moveCurrentPosYRef = useRef(-1);
+  const startMoveYRef = useRef(-1);
+  const currentMoveYRef = useRef(-1);
   const scrollAnimationRunning = useRef(false);
   const scrollOffsetY = useRef(0);
 
@@ -87,10 +87,10 @@ const CustomDraggableFlatList = ({
           return;
         }
         const {moveX, moveY} = gestureState;
-        if (moveStartPosYRef.current === -1) {
-          moveStartPosYRef.current = moveY - layoutRef.current.y;
+        if (startMoveYRef.current === -1) {
+          startMoveYRef.current = moveY;
         }
-        moveCurrentPosYRef.current = moveY - layoutRef.current.y;
+        currentMoveYRef.current = moveY;
 
         pan.setValue({x: moveX, y: moveY});
         panningRef.current = true;
@@ -150,8 +150,8 @@ const CustomDraggableFlatList = ({
     setBelow(undefined);
     pan.setValue({x: 0, y: 0});
     panningRef.current = false;
-    moveStartPosYRef.current = -1;
-    moveCurrentPosYRef.current = -1;
+    startMoveYRef.current = -1;
+    currentMoveYRef.current = -1;
     scrollAnimationRunning.current = false;
   };
 
@@ -160,11 +160,15 @@ const CustomDraggableFlatList = ({
     setBelow(item);
   };
 
+  const positionYonFlatList = (moveY: number) => {
+    return moveY - (layoutRef.current?.y || 0) + scrollOffsetY.current;
+  };
+
   const itemFromTouchPoint = (moveY: number, preparedData: InternalItem[]) => {
     if (!layoutRef.current || preparedData.length === 0) {
       return;
     }
-    const y = moveY - layoutRef.current.y + scrollOffsetY.current;
+    const y = positionYonFlatList(moveY);
     const index = preparedData.findIndex(
       (d: InternalItem) => y > d.y && y < d.y + d.height,
     );
@@ -198,13 +202,12 @@ const CustomDraggableFlatList = ({
       return;
     }
 
-    const userScrollingUp =
-      moveStartPosYRef.current > moveCurrentPosYRef.current; // user is panning up or down
+    const userScrollingUp = startMoveYRef.current > currentMoveYRef.current; // user is panning up or down
     const tresholdTop = layoutRef.current.height * 0.1; // top view area for scrolling up
     const tresholdBottom = layoutRef.current.height * 0.9; // bottom view are for scrolling down
     if (
-      moveCurrentPosYRef.current > tresholdTop &&
-      moveCurrentPosYRef.current < tresholdBottom
+      currentMoveYRef.current > tresholdTop &&
+      currentMoveYRef.current < tresholdBottom
     ) {
       // No scrolling
       return;
@@ -212,8 +215,8 @@ const CustomDraggableFlatList = ({
 
     // cap is min pointer cap to top or bottom of FlatList
     const cap = Math.min(
-      moveCurrentPosYRef.current,
-      layoutRef.current.height - moveCurrentPosYRef.current,
+      currentMoveYRef.current,
+      layoutRef.current.height - currentMoveYRef.current,
     );
 
     // amount of fixels to scroll in one animation request
