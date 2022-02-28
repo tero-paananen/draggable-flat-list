@@ -21,9 +21,8 @@ type FlatListItem = {
 
 type InternalItem = {
   id: string;
-  height: number;
   y: number;
-  itemId?: number | string;
+  height: number;
 };
 
 type Layout = {y: number; height: number};
@@ -49,6 +48,7 @@ const CustomDraggableFlatList = ({
     layout: undefined,
   });
 
+  const preparedDataRef = useRef<InternalItem[]>([]);
   const panningRef = useRef(false);
   const selectedRef = useRef<InternalItem | undefined>(undefined);
   const belowRef = useRef<InternalItem | undefined>(undefined);
@@ -62,8 +62,6 @@ const CustomDraggableFlatList = ({
   const scrollAnimationRunning = useRef(false);
   const scrollOffsetY = useRef(0);
 
-  const preparedDataRef = useRef<InternalItem[]>([]);
-
   const panResponder = React.useRef(
     // https://reactnative.dev/docs/panresponder
     // https://eveningkid.medium.com/the-basics-of-react-native-gestures-23061b5e89cf
@@ -73,26 +71,30 @@ const CustomDraggableFlatList = ({
 
       onMoveShouldSetPanResponder: () => {
         if (selectedRef.current) {
-          // When user has done item selection we start capturing panning
+          // wser has done item selection
+          // start capturing panning
           return true;
+        } else {
+          // user can scroll FlatList
+          return false;
         }
-        // User can scroll FlatList
-        return false;
       },
-      //onMoveShouldSetPanResponderCapture: () => true, // iOS: FlatList is not scrollable if true
+      // onMoveShouldSetPanResponderCapture: () => true, // iOS: FlatList is not scrollable if true
       onPanResponderGrant: () => {},
 
       onPanResponderMove: (event: any, gestureState: any) => {
-        const {moveX, moveY} = gestureState;
         if (!layoutRef.current) {
           return;
         }
+        const {moveX, moveY} = gestureState;
         if (moveStartPosYRef.current === -1) {
           moveStartPosYRef.current = moveY - layoutRef.current.y;
         }
         moveCurrentPosYRef.current = moveY - layoutRef.current.y;
+
         pan.setValue({x: moveX, y: moveY});
         panningRef.current = true;
+
         if (isMovingEnought(moveY)) {
           handleScrollToPosition();
           showWhereToDrop(moveY, preparedDataRef.current);
@@ -139,7 +141,7 @@ const CustomDraggableFlatList = ({
     if (sourceItem && targetItem) {
       const fromIndex = dataIndexFromItem(sourceItem);
       const toIndex = dataIndexFromItem(targetItem);
-      //onHandleMove(fromIndex, toIndex);
+      onHandleMove(fromIndex, toIndex);
     }
   };
 
@@ -162,15 +164,11 @@ const CustomDraggableFlatList = ({
     if (!layoutRef.current || preparedData.length === 0) {
       return;
     }
-    let ret;
     const y = moveY - layoutRef.current.y + scrollOffsetY.current;
     const index = preparedData.findIndex(
       (d: InternalItem) => y > d.y && y < d.y + d.height,
     );
-    if (index !== -1) {
-      ret = preparedData[index];
-    }
-    return ret;
+    return index !== -1 ? preparedData[index] : undefined;
   };
 
   const dataIndexFromItem = (item: InternalItem) => {
@@ -269,18 +267,20 @@ const CustomDraggableFlatList = ({
   const renderFlatListItem = (itemData: FlatListItem) => {
     if (!panningRef.current && selected?.id === itemData.item.id) {
       return (
-        <CustomItem itemData={itemData} onSelected={handleItemSelection}>
+        <CustomFlatListItem
+          itemData={itemData}
+          onSelected={handleItemSelection}>
           {renderSelectedItem(itemData)}
-        </CustomItem>
+        </CustomFlatListItem>
       );
     } else {
       return (
-        <CustomItem
+        <CustomFlatListItem
           itemData={itemData}
           below={below?.id}
           onSelected={handleItemSelection}>
           {renderItem(itemData)}
-        </CustomItem>
+        </CustomFlatListItem>
       );
     }
   };
@@ -312,10 +312,6 @@ const CustomDraggableFlatList = ({
     panningRef.current && handleScrollToPosition();
   }, []);
 
-  const handleOnEndReached = useCallback(() => {
-    scrollAnimationRunning.current = false;
-  }, []);
-
   const containerStyle = useMemo(() => {
     return {...styles.container, ...style};
   }, [style]);
@@ -332,7 +328,6 @@ const CustomDraggableFlatList = ({
         data={preparedData}
         extraData={{id: below?.id}}
         scrollEnabled={true}
-        onEndReached={handleOnEndReached}
         onEndReachedThreshold={0}
         scrollEventThrottle={0}
         onScroll={handleScroll}
@@ -343,7 +338,7 @@ const CustomDraggableFlatList = ({
   );
 };
 
-const CustomItem = ({
+const CustomFlatListItem = ({
   itemData,
   onSelected,
   children,
@@ -355,25 +350,22 @@ const CustomItem = ({
   below?: string;
 }) => {
   const {item} = itemData;
+  const isBelow = item.id === below;
 
   const handleSelected = useCallback(() => {
     onSelected(item);
   }, [item, onSelected]);
 
-  const isBelow = item.id === below;
-
-  const finalStyle = useMemo(() => {
-    const backgroundColor = isBelow
-      ? {backgroundColor: 'darkgray'}
-      : {backgroundColor: 'transparent'};
-    return {...styles.spacer, ...backgroundColor, ...{height: item.height}};
+  const style = useMemo(() => {
+    const color = isBelow ? 'darkgray' : 'transparent';
+    return {...{backgroundColor: color}, ...{height: item.height}};
   }, [isBelow, item.height]);
 
   if (isBelow) {
-    return <View style={finalStyle} />;
+    return <View style={style} />;
   } else {
     return (
-      <TouchableWithoutFeedback style={finalStyle} onPress={handleSelected}>
+      <TouchableWithoutFeedback style={style} onPress={handleSelected}>
         {children}
       </TouchableWithoutFeedback>
     );
@@ -386,9 +378,6 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
-  },
-  spacer: {
-    height: 1,
   },
   flying: {
     position: 'absolute',
