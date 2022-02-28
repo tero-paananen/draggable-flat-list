@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useCallback, useRef} from 'react';
+import React, {useMemo, useState, useCallback, useRef, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -249,10 +249,12 @@ const CustomDraggableFlatList = ({
     return ret;
   }, [data]);
 
-  preparedDataRef.current = preparedData;
-  selectedRef.current = selected;
-  layoutRef.current = layout?.layout;
-  belowRef.current = below;
+  useEffect(() => {
+    preparedDataRef.current = preparedData;
+    selectedRef.current = selected;
+    layoutRef.current = layout?.layout;
+    belowRef.current = below;
+  }, [below, layout?.layout, preparedData, selected]);
 
   const handleItemSelection = useCallback(
     (item: InternalItem) => {
