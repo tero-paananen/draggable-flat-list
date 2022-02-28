@@ -348,7 +348,7 @@ const CustomDraggableFlatList = ({
         scrollEnabled={true}
         onEndReached={handleOnEndReached}
         onEndReachedThreshold={0}
-        scrollEventThrottle={100} // scrollEventThrottle does this work on Windows?
+        scrollEventThrottle={0}
         onScroll={handleScroll}
         renderItem={renderFlatListItem}
       />
