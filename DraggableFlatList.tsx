@@ -176,7 +176,7 @@ const CustomDraggableFlatList = ({
   };
 
   const dataIndexFromItem = (item: InternalItem) => {
-    return data.findIndex(d => d.id === item.id);
+    return preparedDataRef.current.findIndex(d => d.id === item.id);
   };
 
   const isMovingEnought = (moveY: number) => {
