@@ -15,8 +15,6 @@ Tested on platforms: Windows, iOS, (Android will be done)
 "react-native-windows": "0.65.8"
 ```
 
-https://user-images.githubusercontent.com/54746036/155878956-2913dd08-036c-48d7-b2a1-83e2709b55d1.mov
-
 ## Usage
 
 ```
@@ -70,3 +68,12 @@ return (
   </View>
 );
 ```
+
+
+https://user-images.githubusercontent.com/54746036/155878956-2913dd08-036c-48d7-b2a1-83e2709b55d1.mov
+
+
+
+![win](https://user-images.githubusercontent.com/54746036/156190545-1d8509ed-6ba7-4d36-a8a4-89fd1b0e4d12.jpg)
+
+
