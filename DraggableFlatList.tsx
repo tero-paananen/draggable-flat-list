@@ -401,7 +401,7 @@ const CustomFlatListItem = ({
   }, [setRef]);
 
   const style = useMemo(() => {
-    const color = isBelow ? 'darkgray' : 'transparent';
+    const color = isBelow ? '#ededed' : 'transparent';
     return {...{backgroundColor: color}, ...{height: item.height}};
   }, [isBelow, item.height]);
 
@@ -424,6 +424,7 @@ const styles = StyleSheet.create({
   flying: {
     position: 'absolute',
     backgroundColor: 'lightgray',
+    opacity: 0.8,
   },
 });
 
