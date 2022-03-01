@@ -134,9 +134,20 @@ const CustomDraggableFlatList = ({
 
   const handleMove = (sourceItem: Item, targetItem: Item) => {
     if (sourceItem && targetItem) {
-      const fromIndex = dataIndexFromItem(sourceItem);
-      const toIndex = dataIndexFromItem(targetItem);
-      onHandleMove(fromIndex, toIndex);
+      let fromIndex = dataIndexFromItem(sourceItem);
+      let toIndex = dataIndexFromItem(targetItem);
+
+      if (fromIndex !== toIndex && fromIndex !== -1 && toIndex !== -1) {
+        // positioned on top of target item
+        if (fromIndex < toIndex && toIndex > fromIndex + 1) {
+          // moving item to down
+          toIndex--;
+          onHandleMove(fromIndex, toIndex);
+        } else if (fromIndex > toIndex && fromIndex > toIndex + 1) {
+          // moving item to up
+          onHandleMove(fromIndex, toIndex);
+        }
+      }
     }
   };
 
@@ -180,7 +191,7 @@ const CustomDraggableFlatList = ({
   };
 
   const isMovingEnought = (moveY: number) => {
-    const TRESHOLD_PIXELS = 4;
+    const TRESHOLD_PIXELS = 10;
     if (
       selectedRef.current &&
       layoutRef.current &&
