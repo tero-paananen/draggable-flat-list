@@ -171,7 +171,7 @@ const CustomDraggableFlatList = ({
       if (!itemLayout || !layoutRef.current) {
         return false;
       }
-      const itemY = itemLayout.y - layoutRef.current.y;
+      const itemY = itemLayout.y - layoutRef.current.y + scrollOffsetY.current;
       return itemLayout && y > itemY && y < itemY + itemLayout.height;
     });
     return index !== -1 ? items[index] : undefined;
@@ -249,6 +249,18 @@ const CustomDraggableFlatList = ({
       });
       return newIdMap;
     });
+
+    const measureItems = () => {
+      // measure all item refs positions
+      for (const id of listItemsRef.current.keys()) {
+        const ref = listItemsRef.current.get(id);
+        if (ref) {
+          measureRef(ref, id);
+        }
+      }
+    };
+
+    measureItems();
   }, [below, data, layout?.layout, selected]);
 
   const handleItemSelection = useCallback(
@@ -263,16 +275,6 @@ const CustomDraggableFlatList = ({
     },
     [onSelected, selected],
   );
-
-  const measureItems = () => {
-    // measure all item refs positions
-    for (const id of listItemsRef.current.keys()) {
-      const ref = listItemsRef.current.get(id);
-      if (ref) {
-        measureRef(ref, id);
-      }
-    }
-  };
 
   const measureRef = (ref: React.RefObject<View>, id: string) => {
     ref.current?.measureInWindow(
