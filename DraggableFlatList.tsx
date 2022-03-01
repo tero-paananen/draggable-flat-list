@@ -238,8 +238,6 @@ const CustomDraggableFlatList = ({
     layoutRef.current = layout?.layout;
     belowRef.current = below;
 
-    console.log('> UPDATED');
-
     const measureItems = () => {
       // measure all item refs positions
       for (const id of listItemsRef.current.keys()) {
@@ -249,7 +247,6 @@ const CustomDraggableFlatList = ({
         }
       }
     };
-
     measureItems();
   }, [below, data, layout?.layout, selected]);
 
