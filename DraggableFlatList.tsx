@@ -43,8 +43,6 @@ const CustomDraggableFlatList = ({
     layout: undefined,
   });
 
-  const [idMapData, setIdMapData] = useState<Map<number, string>>(new Map());
-
   const itemLayoutMapRef = useRef<Map<string, ItemLayout>>(new Map());
   const listItemsRef = useRef<Map<string, React.RefObject<View>>>(new Map());
 
@@ -136,9 +134,20 @@ const CustomDraggableFlatList = ({
 
   const handleMove = (sourceItem: Item, targetItem: Item) => {
     if (sourceItem && targetItem) {
-      const fromIndex = dataIndexFromItem(sourceItem);
-      const toIndex = dataIndexFromItem(targetItem);
-      onHandleMove(fromIndex, toIndex);
+      let fromIndex = dataIndexFromItem(sourceItem);
+      let toIndex = dataIndexFromItem(targetItem);
+
+      if (fromIndex !== toIndex && fromIndex !== -1 && toIndex !== -1) {
+        // positioned on top of target item
+        if (fromIndex < toIndex && toIndex > fromIndex + 1) {
+          // moving item to down
+          toIndex--;
+          onHandleMove(fromIndex, toIndex);
+        } else if (fromIndex > toIndex && fromIndex > toIndex + 1) {
+          // moving item to up
+          onHandleMove(fromIndex, toIndex);
+        }
+      }
     }
   };
 
@@ -182,7 +191,7 @@ const CustomDraggableFlatList = ({
   };
 
   const isMovingEnought = (moveY: number) => {
-    const TRESHOLD_PIXELS = 4;
+    const TRESHOLD_PIXELS = 10;
     if (
       selectedRef.current &&
       layoutRef.current &&
@@ -240,16 +249,6 @@ const CustomDraggableFlatList = ({
     layoutRef.current = layout?.layout;
     belowRef.current = below;
 
-    console.log('> UPDATED');
-
-    setIdMapData(prevIdMap => {
-      const newIdMap = new Map(prevIdMap);
-      data.map((d, index) => {
-        newIdMap.set(index, d.id);
-      });
-      return newIdMap;
-    });
-
     const measureItems = () => {
       // measure all item refs positions
       for (const id of listItemsRef.current.keys()) {
@@ -259,7 +258,6 @@ const CustomDraggableFlatList = ({
         }
       }
     };
-
     measureItems();
   }, [below, data, layout?.layout, selected]);
 
@@ -350,8 +348,8 @@ const CustomDraggableFlatList = ({
   }, [style]);
 
   const extraData = useMemo(() => {
-    return {below, selected, idMapData};
-  }, [below, selected, idMapData]);
+    return {below, selected};
+  }, [below, selected]);
 
   return (
     <View
@@ -381,20 +379,17 @@ const CustomFlatListItem = ({
   itemData,
   onSelected,
   children,
-  onLayout,
   below,
   setRef,
 }: {
   itemData: FlatListItem;
   onSelected: (item: Item) => void;
   children?: JSX.Element;
-  onLayout?: (e: ItemLayout) => void;
   below?: string;
   setRef: (ref: React.RefObject<View>) => void;
 }) => {
   const {item} = itemData;
   const isBelow = item.id === below;
-
   const itemRef = useRef<View>(null);
 
   const handleSelected = useCallback(() => {
@@ -402,19 +397,11 @@ const CustomFlatListItem = ({
   }, [item, onSelected]);
 
   const handleLayout = useCallback(() => {
-    setRef(itemRef); // only get ref
-    /*
-    //const layout = e.nativeEvent.layout; // y is 0 here
-    itemRef.current &&
-      itemRef.current.measureInWindow(
-        (x: number, y: number, width: number, height: number) => {
-          onLayout({id: item.id, y, height});
-        },
-      );*/
+    setRef(itemRef); // only get reference into item
   }, [setRef]);
 
   const style = useMemo(() => {
-    const color = isBelow ? 'darkgray' : 'transparent';
+    const color = isBelow ? '#ededed' : 'transparent';
     return {...{backgroundColor: color}, ...{height: item.height}};
   }, [isBelow, item.height]);
 
@@ -437,6 +424,7 @@ const styles = StyleSheet.create({
   flying: {
     position: 'absolute',
     backgroundColor: 'lightgray',
+    opacity: 0.8,
   },
 });
 
