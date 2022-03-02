@@ -356,7 +356,7 @@ const CustomDraggableFlatList = ({
       style={containerStyle}
       {...panResponder.panHandlers}
       onLayout={handleLayout}>
-      <Animated.FlatList
+      <FlatList
         style={styles.list}
         ref={flatListRef}
         keyExtractor={(item: Item) => item.id}
