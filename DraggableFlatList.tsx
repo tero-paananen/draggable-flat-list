@@ -4,18 +4,19 @@ import {
   StyleSheet,
   PanResponder,
   Animated,
-  TouchableWithoutFeedback,
   FlatList,
   Platform,
 } from 'react-native';
 import debounce from 'lodash/debounce';
+
+import DraggableItem from './DraggableItem';
 
 export type Item = {
   id: string;
   height: number;
 };
 
-type FlatListItem = {
+export type FlatListItem = {
   item: Item;
 };
 
@@ -296,22 +297,22 @@ const CustomDraggableFlatList = ({
 
     if (!panningRef.current && selected?.id === itemData.item.id) {
       return (
-        <CustomFlatListItem
+        <DraggableItem
           itemData={itemData}
           setRef={setRef}
           onSelected={handleItemSelection}>
           {renderSelectedItem(itemData)}
-        </CustomFlatListItem>
+        </DraggableItem>
       );
     } else {
       return (
-        <CustomFlatListItem
+        <DraggableItem
           itemData={itemData}
           setRef={setRef}
           below={below?.id}
           onSelected={handleItemSelection}>
           {renderItem(itemData)}
-        </CustomFlatListItem>
+        </DraggableItem>
       );
     }
   };
@@ -356,7 +357,7 @@ const CustomDraggableFlatList = ({
       style={containerStyle}
       {...panResponder.panHandlers}
       onLayout={handleLayout}>
-      <Animated.FlatList
+      <FlatList
         style={styles.list}
         ref={flatListRef}
         keyExtractor={(item: Item) => item.id}
@@ -372,45 +373,6 @@ const CustomDraggableFlatList = ({
       />
       {renderFlyingItem()}
     </View>
-  );
-};
-
-const CustomFlatListItem = ({
-  itemData,
-  onSelected,
-  children,
-  below,
-  setRef,
-}: {
-  itemData: FlatListItem;
-  onSelected: (item: Item) => void;
-  children?: JSX.Element;
-  below?: string;
-  setRef: (ref: React.RefObject<View>) => void;
-}) => {
-  const {item} = itemData;
-  const isBelow = item.id === below;
-  const itemRef = useRef<View>(null);
-
-  const handleSelected = useCallback(() => {
-    onSelected(item);
-  }, [item, onSelected]);
-
-  const handleLayout = useCallback(() => {
-    setRef(itemRef); // only get reference into item
-  }, [setRef]);
-
-  const style = useMemo(() => {
-    const color = isBelow ? '#ededed' : 'transparent';
-    return {...{backgroundColor: color}, ...{height: item.height}};
-  }, [isBelow, item.height]);
-
-  return (
-    <TouchableWithoutFeedback onPress={handleSelected}>
-      <View style={style} ref={itemRef} onLayout={handleLayout}>
-        {children}
-      </View>
-    </TouchableWithoutFeedback>
   );
 };
 
