@@ -6,8 +6,6 @@ React Native FlatList component whose items can be drag into new positions. This
 
 Not tested in production.
 
-
-
 ---
 
 ## Development env
@@ -54,7 +52,7 @@ const renderSelectedItem = ({item}: {item: MyItem}) => {
 const handleSelected = useCallback((item: Item) => {
 }, []);
 
-const handleMove = useCallback((fromIndex: number, toIndex: number) => {
+const handleMove = useCallback((fromIndex: number, toIndex: number, items: Item[]) => {
 }, []);
 
 return (
@@ -73,12 +71,6 @@ return (
 );
 ```
 
-
-
 https://user-images.githubusercontent.com/54746036/156192827-a4fc87cd-32c1-41f9-bfa8-b199f69bb0d2.mov
 
-
-
 ![win](https://user-images.githubusercontent.com/54746036/156190545-1d8509ed-6ba7-4d36-a8a4-89fd1b0e4d12.jpg)
-
-
