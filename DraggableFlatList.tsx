@@ -1,12 +1,5 @@
 import React, {useMemo, useState, useCallback, useRef, useEffect} from 'react';
-import {
-  View,
-  StyleSheet,
-  PanResponder,
-  Animated,
-  FlatList,
-  Platform,
-} from 'react-native';
+import {View, StyleSheet, PanResponder, Animated, FlatList} from 'react-native';
 import debounce from 'lodash/debounce';
 
 import DraggableItem from './DraggableItem';
@@ -56,10 +49,18 @@ const CustomDraggableFlatList = ({
   const flatListRef = useRef<FlatList | null>(null);
 
   const pan = useRef(new Animated.ValueXY()).current;
+  const prevScrollDirection = useRef(0);
+  const scrollToIndex = useRef(-1);
   const startMoveYRef = useRef(-1);
   const currentMoveYRef = useRef(-1);
   const scrollAnimationRunning = useRef(false);
   const scrollOffsetY = useRef(0);
+
+  const SCROLL_ITEM_AMOUNT = 2;
+  const SCROLL_DIRECTION_UP = -1;
+  const SCROLL_DIRECTION_DOWN = 1;
+
+  // https://reactnative.dev/docs/0.65/flatlist
 
   const panResponder = React.useRef(
     // https://reactnative.dev/docs/panresponder
@@ -95,7 +96,8 @@ const CustomDraggableFlatList = ({
         panningRef.current = true;
 
         if (isMovingEnought(moveY)) {
-          handleScrollToPosition();
+          callNextScrollToPoint.current.cancel();
+          callNextScrollToPoint.current();
           showWhereToDrop(moveY, dataRef.current);
         }
       },
@@ -121,14 +123,14 @@ const CustomDraggableFlatList = ({
     }),
   ).current;
 
-  const callOnScroll = useRef(
+  const callNextScrollToPoint = useRef(
     debounce(
       () => {
         if (panningRef.current) {
-          scrollAnimationRunning.current = false;
+          handleScrollToPoint(currentMoveYRef.current, dataRef.current);
         }
       },
-      1000,
+      200,
       {leading: false, trailing: true},
     ),
   );
@@ -159,7 +161,10 @@ const CustomDraggableFlatList = ({
     panningRef.current = false;
     startMoveYRef.current = -1;
     currentMoveYRef.current = -1;
+    scrollToIndex.current = -1;
+    prevScrollDirection.current = 0;
     scrollAnimationRunning.current = false;
+    callNextScrollToPoint.current.cancel();
   };
 
   const showWhereToDrop = (moveY: number, items: Item[]) => {
@@ -175,6 +180,11 @@ const CustomDraggableFlatList = ({
     if (!layoutRef.current || !itemLayoutMapRef.current || items.length === 0) {
       return;
     }
+    const index = itemIndexFromTouchPoint(moveY, items);
+    return index !== -1 ? items[index] : undefined;
+  };
+
+  const itemIndexFromTouchPoint = (moveY: number, items: Item[]) => {
     const y = posY(moveY);
     const index = items.findIndex((d: Item) => {
       const itemLayout = itemLayoutMapRef.current.get(d.id);
@@ -184,7 +194,7 @@ const CustomDraggableFlatList = ({
       const itemY = itemLayout.y - layoutRef.current.y + scrollOffsetY.current;
       return itemLayout && y > itemY && y < itemY + itemLayout.height;
     });
-    return index !== -1 ? items[index] : undefined;
+    return index;
   };
 
   const dataIndexFromItem = (item: Item) => {
@@ -204,44 +214,74 @@ const CustomDraggableFlatList = ({
     return false;
   };
 
-  const handleScrollToPosition = () => {
+  const handleScrollToPoint = (moveY: number, items: Item[]) => {
+    const cancel = () => {
+      callNextScrollToPoint.current.cancel();
+    };
+
     // scroll flatlist to up or down
-    if (
-      !panningRef.current ||
-      scrollAnimationRunning.current ||
-      !layoutRef.current
-    ) {
+    if (!panningRef.current || !layoutRef.current?.y) {
+      cancel();
       return;
     }
 
+    const yPosInLayout = moveY - layoutRef.current.y;
     const userScrollingUp = startMoveYRef.current > currentMoveYRef.current; // user is panning up or down
     const tresholdTop = layoutRef.current.height * 0.1; // top view area for scrolling up
     const tresholdBottom = layoutRef.current.height * 0.9; // bottom view are for scrolling down
-    if (
-      currentMoveYRef.current > tresholdTop &&
-      currentMoveYRef.current < tresholdBottom
-    ) {
+
+    if (yPosInLayout > tresholdTop && yPosInLayout < tresholdBottom) {
       // No scrolling
+      cancel();
       return;
     }
 
-    // cap is min pointer cap to top or bottom of FlatList
-    const cap = Math.min(
-      currentMoveYRef.current,
-      layoutRef.current.height - currentMoveYRef.current,
-    );
-
-    // amount of fixels to scroll in one animation request
-    // if pointer (cap value) is near top of bottom is scroll animation faster
-    const amount = cap < 5 ? 75 : Platform.OS === 'windows' ? 30 : 50;
-    const offset = scrollOffsetY.current + (userScrollingUp ? -amount : amount); // amount of scrolling
-    if (offset < 0) {
-      // Try to scroll too high
+    // get current index and index where to scroll next - to up or down
+    const index = itemIndexFromTouchPoint(moveY, items);
+    if (index === -1) {
+      cancel();
       return;
     }
-    scrollAnimationRunning.current = true;
-    flatListRef.current?.scrollToOffset({offset, animated: true}); // scroll
-    callOnScroll.current(); // call onScroll delayed because it is not always called on end of FlatList reached
+
+    if (scrollToIndex.current === -1) {
+      scrollToIndex.current = index;
+    }
+
+    if (
+      (userScrollingUp &&
+        prevScrollDirection.current !== SCROLL_DIRECTION_UP) ||
+      (!userScrollingUp &&
+        prevScrollDirection.current !== SCROLL_DIRECTION_DOWN)
+    ) {
+      // scroll direction change
+      scrollToIndex.current = index;
+    }
+
+    let viewPosition;
+    if (userScrollingUp) {
+      // scrolling to up
+      prevScrollDirection.current = SCROLL_DIRECTION_UP;
+      scrollToIndex.current = scrollToIndex.current - SCROLL_ITEM_AMOUNT;
+      viewPosition = 0;
+    } else {
+      // scrolling to down
+      prevScrollDirection.current = SCROLL_DIRECTION_DOWN;
+      scrollToIndex.current = scrollToIndex.current + SCROLL_ITEM_AMOUNT;
+      viewPosition = 1;
+    }
+
+    if (scrollToIndex.current < 0 || scrollToIndex.current > data.length - 1) {
+      cancel();
+      return;
+    }
+
+    flatListRef.current?.scrollToIndex({
+      index: scrollToIndex.current,
+      viewPosition,
+      animated: true,
+    });
+
+    callNextScrollToPoint.current();
   };
 
   useEffect(() => {
@@ -340,8 +380,6 @@ const CustomDraggableFlatList = ({
 
   const handleScroll = useCallback((e: any) => {
     scrollOffsetY.current = e.nativeEvent.contentOffset.y;
-    scrollAnimationRunning.current = false;
-    panningRef.current && handleScrollToPosition();
   }, []);
 
   const containerStyle = useMemo(() => {
@@ -366,8 +404,7 @@ const CustomDraggableFlatList = ({
         scrollEnabled={true}
         initialNumToRender={data.length}
         removeClippedSubviews={false}
-        onEndReachedThreshold={0}
-        scrollEventThrottle={0}
+        scrollEventThrottle={16}
         onScroll={handleScroll}
         renderItem={renderFlatListItem}
       />
