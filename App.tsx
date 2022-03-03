@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useEffect, useRef} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import DraggableFlatList, {Item} from './DraggableFlatList';
 import {arrayMoveImmutable} from 'array-move';
@@ -20,7 +20,6 @@ const INITIAL_DATA = Array.from({length: 30}, (_, i) => {
 
 const App = () => {
   const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
-  const dataRef = useRef<MyItem[] | undefined>(undefined);
 
   const renderItem = ({item}: {item: MyItem}) => {
     return (
@@ -42,17 +41,14 @@ const App = () => {
     console.log('handleSelected ', {item});
   }, []);
 
-  const handleMove = useCallback((fromIndex: number, toIndex: number) => {
-    console.log('handleMove ', {fromIndex, toIndex});
-    if (dataRef.current) {
-      const newData = arrayMoveImmutable(dataRef.current, fromIndex, toIndex);
+  const handleMove = useCallback(
+    (fromIndex: number, toIndex: number, items: Item[]) => {
+      console.log('handleMove ', {fromIndex, toIndex});
+      const newData = arrayMoveImmutable(items, fromIndex, toIndex);
       setData(newData);
-    }
-  }, []);
-
-  useEffect(() => {
-    dataRef.current = data;
-  }, [data]);
+    },
+    [],
+  );
 
   return (
     <View style={styles.container}>

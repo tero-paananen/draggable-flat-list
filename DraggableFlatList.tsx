@@ -29,7 +29,7 @@ const CustomDraggableFlatList = ({
   renderSelectedItem: (itemData: FlatListItem) => JSX.Element;
   style: any;
   onSelected: (item: Item | undefined) => void;
-  onHandleMove: (fromIndex: number, toIndex: number) => void;
+  onHandleMove: (fromIndex: number, toIndex: number, data: Item[]) => void;
 }) => {
   const [selected, setSelected] = useState<Item | undefined>(undefined);
   const [below, setBelow] = useState<Item | undefined>(undefined);
@@ -145,10 +145,10 @@ const CustomDraggableFlatList = ({
         if (fromIndex < toIndex && toIndex > fromIndex + 1) {
           // moving item to down
           toIndex--;
-          onHandleMove(fromIndex, toIndex);
+          onHandleMove(fromIndex, toIndex, dataRef.current);
         } else if (fromIndex > toIndex && fromIndex > toIndex + 1) {
           // moving item to up
-          onHandleMove(fromIndex, toIndex);
+          onHandleMove(fromIndex, toIndex, dataRef.current);
         }
       }
     }
