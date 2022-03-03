@@ -10,7 +10,7 @@ type MyItem = Item & {
   title?: string;
 };
 
-const INITIAL_DATA = Array.from({length: 20}, (_, i) => {
+const INITIAL_DATA = Array.from({length: 30}, (_, i) => {
   return {
     id: i + '',
     title: 'Lorem ipsum dolor sit amet ' + i,
