@@ -2,7 +2,7 @@
 
 React Native FlatList component whose items can be drag into new positions. This component **does NOT use** [React Native Reanimated](https://github.com/software-mansion/react-native-reanimated) or [React Native Gesture Handler](https://github.com/software-mansion/react-native-gesture-handler) and that is why this works also on React Native Windows.
 
-Version 0.0.1 is tested on platforms: Windows, iOS, Android
+[Version 0.0.1](https://github.com/tero-paananen/draggable-flat-list/blob/0.0.1/README.md) is tested on platforms: Windows, iOS, Android
 
 Not tested in production.
 
