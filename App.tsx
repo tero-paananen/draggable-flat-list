@@ -36,7 +36,7 @@ const App = () => {
     [],
   );
 
-  const MyListItem = ({item}: {item: MyItem}) => {
+  const MyListItem = React.memo(({item}: {item: MyItem}) => {
     const handleSelected = useCallback(() => {
       console.log('selected', {item});
       item.id === selected?.id ? setSelected(undefined) : setSelected(item);
@@ -50,7 +50,7 @@ const App = () => {
         <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
       </TouchableOpacity>
     );
-  };
+  });
 
   return (
     <View style={styles.container}>
