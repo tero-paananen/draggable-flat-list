@@ -1,5 +1,12 @@
 import React, {useMemo, useState, useCallback, useRef, useEffect} from 'react';
-import {View, StyleSheet, PanResponder, Animated, FlatList} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  PanResponder,
+  Animated,
+  FlatList,
+  Platform,
+} from 'react-native';
 import debounce from 'lodash/debounce';
 
 import DraggableItem from './DraggableItem';
@@ -19,19 +26,16 @@ type ItemLayout = {id: string; y: number; height: number};
 const CustomDraggableFlatList = ({
   data,
   renderItem,
-  renderSelectedItem,
   style,
-  onSelected,
   onHandleMove,
+  selected,
 }: {
   data: Item[];
   renderItem: (itemData: FlatListItem) => JSX.Element;
-  renderSelectedItem: (itemData: FlatListItem) => JSX.Element;
   style: any;
-  onSelected: (item: Item | undefined) => void;
   onHandleMove: (fromIndex: number, toIndex: number, data: Item[]) => void;
+  selected?: Item | undefined;
 }) => {
-  const [selected, setSelected] = useState<Item | undefined>(undefined);
   const [below, setBelow] = useState<Item | undefined>(undefined);
   const [layout, setLayout] = useState<{layout: Layout | undefined}>({
     layout: undefined,
@@ -70,13 +74,17 @@ const CustomDraggableFlatList = ({
       onStartShouldSetPanResponderCapture: () => false,
 
       onMoveShouldSetPanResponder: () => {
-        if (selectedRef.current) {
-          // wser has done item selection
-          // start capturing panning
+        if (Platform.OS === 'windows') {
           return true;
         } else {
-          // user can scroll FlatList
-          return false;
+          if (selectedRef.current) {
+            // wser has done item selection
+            // start capturing panning
+            return true;
+          } else {
+            // user can scroll FlatList
+            return false;
+          }
         }
       },
       // onMoveShouldSetPanResponderCapture: () => true, // iOS: FlatList is not scrollable if true
@@ -155,7 +163,6 @@ const CustomDraggableFlatList = ({
   };
 
   const endPanning = () => {
-    setSelected(undefined);
     setBelow(undefined);
     pan.setValue({x: 0, y: 0});
     panningRef.current = false;
@@ -302,19 +309,6 @@ const CustomDraggableFlatList = ({
     measureItems();
   }, [below, data, layout?.layout, selected]);
 
-  const handleItemSelection = useCallback(
-    (item: Item) => {
-      if (selected?.id === item.id) {
-        setSelected(undefined);
-        onSelected(undefined);
-      } else {
-        setSelected(item);
-        onSelected({id: item.id, height: item.height});
-      }
-    },
-    [onSelected, selected],
-  );
-
   const measureRef = (ref: React.RefObject<View>, id: string) => {
     ref.current?.measureInWindow(
       (x: number, y: number, width: number, height: number) => {
@@ -335,26 +329,11 @@ const CustomDraggableFlatList = ({
       measureRef(ref, itemData.item.id);
     };
 
-    if (!panningRef.current && selected?.id === itemData.item.id) {
-      return (
-        <DraggableItem
-          itemData={itemData}
-          setRef={setRef}
-          onSelected={handleItemSelection}>
-          {renderSelectedItem(itemData)}
-        </DraggableItem>
-      );
-    } else {
-      return (
-        <DraggableItem
-          itemData={itemData}
-          setRef={setRef}
-          below={below?.id}
-          onSelected={handleItemSelection}>
-          {renderItem(itemData)}
-        </DraggableItem>
-      );
-    }
+    return (
+      <DraggableItem itemData={itemData} setRef={setRef} below={below?.id}>
+        {renderItem(itemData)}
+      </DraggableItem>
+    );
   };
 
   const renderFlyingItem = () => {

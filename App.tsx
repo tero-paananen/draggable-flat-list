@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import DraggableFlatList, {Item} from './DraggableFlatList';
 import {arrayMoveImmutable} from 'array-move';
 
@@ -20,35 +20,37 @@ const INITIAL_DATA = Array.from({length: 30}, (_, i) => {
 
 const App = () => {
   const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
+  const [selected, setSelected] = useState<Item | undefined>(undefined);
 
   const renderItem = ({item}: {item: MyItem}) => {
-    return (
-      <View style={styles.itemContainer} key={item.id}>
-        <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
-      </View>
-    );
+    return <MyListItem item={item} />;
   };
-
-  const renderSelectedItem = ({item}: {item: MyItem}) => {
-    return (
-      <View style={styles.selectedItemContainer} key={item.id}>
-        <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
-      </View>
-    );
-  };
-
-  const handleSelected = useCallback((item: Item | undefined) => {
-    console.log('handleSelected ', {item});
-  }, []);
 
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
       console.log('handleMove ', {fromIndex, toIndex});
       const newData = arrayMoveImmutable(items, fromIndex, toIndex);
+      setSelected(undefined);
       setData(newData);
     },
     [],
   );
+
+  const MyListItem = ({item}: {item: MyItem}) => {
+    const handleSelected = useCallback(() => {
+      console.log('selected', {item});
+      item.id === selected?.id ? setSelected(undefined) : setSelected(item);
+    }, [item]);
+    const backgroundColor = item.id === selected?.id ? 'lightgray' : undefined;
+    return (
+      <TouchableOpacity
+        onPress={handleSelected}
+        style={[styles.itemContainer, {backgroundColor}]}
+        key={item.id}>
+        <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -56,9 +58,8 @@ const App = () => {
       <DraggableFlatList
         style={styles.list}
         data={data}
+        selected={selected}
         renderItem={renderItem}
-        renderSelectedItem={renderSelectedItem}
-        onSelected={handleSelected}
         onHandleMove={handleMove}
       />
       <View style={styles.footer} />
@@ -79,10 +80,6 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     justifyContent: 'center',
-  },
-  selectedItemContainer: {
-    justifyContent: 'center',
-    backgroundColor: 'lightgray',
   },
   item: {
     paddingTop: 10,

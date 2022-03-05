@@ -1,17 +1,14 @@
-import {Item} from './DraggableFlatList';
 import {FlatListItem} from './DraggableFlatList';
 import React, {useMemo, useCallback, useRef} from 'react';
-import {View, TouchableWithoutFeedback} from 'react-native';
+import {View} from 'react-native';
 
 const DraggableItem = ({
   itemData,
-  onSelected,
   children,
   below,
   setRef,
 }: {
   itemData: FlatListItem;
-  onSelected: (item: Item) => void;
   children?: JSX.Element;
   below?: string;
   setRef: (ref: React.RefObject<View>) => void;
@@ -19,10 +16,6 @@ const DraggableItem = ({
   const {item} = itemData;
   const isBelow = item.id === below;
   const itemRef = useRef<View>(null);
-
-  const handleSelected = useCallback(() => {
-    onSelected(item);
-  }, [item, onSelected]);
 
   const handleLayout = useCallback(() => {
     setRef(itemRef); // only get reference into item
@@ -34,11 +27,9 @@ const DraggableItem = ({
   }, [isBelow, item.height]);
 
   return (
-    <TouchableWithoutFeedback onPress={handleSelected}>
-      <View style={style} ref={itemRef} onLayout={handleLayout}>
-        {children}
-      </View>
-    </TouchableWithoutFeedback>
+    <View style={style} ref={itemRef} onLayout={handleLayout}>
+      {children}
+    </View>
   );
 };
 
