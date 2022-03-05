@@ -22,9 +22,13 @@ const App = () => {
   const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
   const [selected, setSelected] = useState<Item | undefined>(undefined);
 
-  const renderItem = useCallback(({item}: {item: MyItem}) => {
-    return <MyListItem item={item} />;
-  }, []);
+  const renderItem = useCallback(
+    ({item}: {item: MyItem}) => {
+      return <MyListItem item={item} />;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selected],
+  );
 
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
