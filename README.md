@@ -20,55 +20,57 @@ Not tested in production.
 ## Usage
 
 ```
-// Your item data
-const data = useMemo(() => {
-  return Array.from({length: 20}, (_, i) => {
-    return {
-      id: i + '',
-      title: 'Lorem ipsum dolor sit amet ' + i,
-      height: ITEM_HEIGHT,
-    };
+const App = () => {
+  const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
+  const [selected, setSelected] = useState<Item | undefined>(undefined);
+
+  // Handle item data update on move
+  const handleMove = useCallback(
+    (fromIndex: number, toIndex: number, items: Item[]) => {
+      console.log('handleMove ', {fromIndex, toIndex});
+      const newData = arrayMoveImmutable(items, fromIndex, toIndex);
+      setSelected(undefined);
+      setData(newData);
+    },
+    [],
+  );
+
+  // Make your custom item for FlatList
+  const MyListItem = React.memo(({item}: {item: MyItem}) => {
+    const handleSelected = useCallback(() => {
+      console.log('selected', {item});
+      item.id === selected?.id ? setSelected(undefined) : setSelected(item);
+    }, [item]);
+    const backgroundColor = item.id === selected?.id ? 'lightgray' : undefined;
+    return (
+      <TouchableOpacity
+        onPress={handleSelected}
+        style={[styles.itemContainer, {backgroundColor}]}
+        key={item.id}>
+        <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
+      </TouchableOpacity>
+    );
   });
-}, []);
 
-// Custom item render function
-const renderItem = ({item}: {item: MyItem}) => {
+  const renderItem = useCallback(({item}: {item: MyItem}) => {
+    return <MyListItem item={item} />;
+  }, [selected]);
+
   return (
-    <View style={styles.itemContainer} key={item.id}>
-      <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
+    <View style={styles.container}>
+      <View style={styles.header} />
+      <DraggableFlatList
+        style={styles.list}
+        data={data}
+        selected={selected}
+        renderItem={renderItem}
+        onHandleMove={handleMove}
+      />
+      <View style={styles.footer} />
     </View>
   );
 };
 
-// Custom selected item render function
-const renderSelectedItem = ({item}: {item: MyItem}) => {
-  return (
-    <View style={styles.selectedItemContainer} key={item.id}>
-      <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
-    </View>
-  );
-};
-
-const handleSelected = useCallback((item: Item) => {
-}, []);
-
-const handleMove = useCallback((fromIndex: number, toIndex: number, items: Item[]) => {
-}, []);
-
-return (
-  <View style={styles.container}>
-    <View style={styles.header} />
-    <DraggableFlatList
-      style={styles.list}
-      data={data}
-      renderItem={renderItem}
-      renderSelectedItem={renderSelectedItem}
-      onSelected={handleSelected}
-      onHandleMove={handleMove}
-    />
-    <View style={styles.footer} />
-  </View>
-);
 ```
 
 https://user-images.githubusercontent.com/54746036/156192827-a4fc87cd-32c1-41f9-bfa8-b199f69bb0d2.mov
