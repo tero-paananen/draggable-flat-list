@@ -1,7 +1,6 @@
 {
   "name": "DraggableFlatList",
   "version": "0.0.4",
-  "main": "index.js",
   "private": true,
   "author": {
     "name": "Tero Paananen",
