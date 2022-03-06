@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import DraggableFlatList, {Item} from './DraggableFlatList';
-import {arrayMoveImmutable} from 'array-move';
 
 const ITEM_HEIGHT = 50;
 const ITEM_WIDTH = 300;
@@ -33,9 +32,8 @@ const App = () => {
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
       console.log('handleMove ', {fromIndex, toIndex});
-      const newData = arrayMoveImmutable(items, fromIndex, toIndex);
       setSelected(undefined);
-      setData(newData);
+      setData(items);
     },
     [],
   );

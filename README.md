@@ -28,9 +28,8 @@ const App = () => {
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
       console.log('handleMove ', {fromIndex, toIndex});
-      const newData = arrayMoveImmutable(items, fromIndex, toIndex);
       setSelected(undefined);
-      setData(newData);
+      setData(items);
     },
     [],
   );

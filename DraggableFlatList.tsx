@@ -153,10 +153,12 @@ const CustomDraggableFlatList = ({
         if (fromIndex < toIndex && toIndex > fromIndex + 1) {
           // moving item to down
           toIndex--;
-          onHandleMove(fromIndex, toIndex, dataRef.current);
+          const newData = moveItem(fromIndex, toIndex, dataRef.current);
+          onHandleMove(fromIndex, toIndex, newData);
         } else if (fromIndex > toIndex && fromIndex > toIndex + 1) {
           // moving item to up
-          onHandleMove(fromIndex, toIndex, dataRef.current);
+          const newData = moveItem(fromIndex, toIndex, dataRef.current);
+          onHandleMove(fromIndex, toIndex, newData);
         }
       }
     }
@@ -172,6 +174,13 @@ const CustomDraggableFlatList = ({
     prevScrollDirection.current = 0;
     scrollAnimationRunning.current = false;
     callNextScrollToPoint.current.cancel();
+  };
+
+  const moveItem = (fromIndex: number, toIndex: number, items: Item[]) => {
+    const mutable = [...items];
+    const item = mutable.splice(fromIndex, 1)[0];
+    mutable.splice(toIndex, 0, item);
+    return mutable;
   };
 
   const showWhereToDrop = (moveY: number, items: Item[]) => {
