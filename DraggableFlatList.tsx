@@ -44,7 +44,6 @@ const CustomDraggableFlatList = ({
 
   const dataRef = useRef<Item[]>([]);
   const panningRef = useRef(false);
-  const dragRef = useRef(false);
   const selectedRef = useRef<Item | undefined>(undefined);
   const belowRef = useRef<Item | undefined>(undefined);
   const layoutRef = useRef<Layout | undefined>(undefined);
@@ -73,15 +72,17 @@ const CustomDraggableFlatList = ({
       onStartShouldSetPanResponder: () => false,
 
       // Should child views be prevented from becoming responder on first touch?
-      onStartShouldSetPanResponderCapture: () => {
-        // const {pageX, pageY} = event.nativeEvent;
+      onStartShouldSetPanResponderCapture: (event: any) => {
+        const {pageX, pageY} = event.nativeEvent;
+        pan.setValue({x: pageX, y: pageY});
+
         return false;
       },
 
       // Called for every touch move on the View when it is not the responder
       // does this view want to "claim" touch responsiveness?
       onMoveShouldSetPanResponder: () => {
-        if (dragRef.current && selectedRef.current) {
+        if (panningRef.current && selectedRef.current) {
           // start capturing panning
           return true;
         } else {
@@ -172,7 +173,6 @@ const CustomDraggableFlatList = ({
     selectedRef.current = undefined;
     pan.setValue({x: 0, y: 0});
     panningRef.current = false;
-    dragRef.current = false;
     startMoveYRef.current = -1;
     currentMoveYRef.current = -1;
     scrollToIndex.current = -1;
@@ -185,8 +185,8 @@ const CustomDraggableFlatList = ({
     const index = dataRef.current.findIndex(d => d.id === id);
     const item = index !== -1 ? dataRef.current[index] : undefined;
     if (item) {
+      panningRef.current = true;
       setSelected(item);
-      dragRef.current = true;
     }
   };
 
