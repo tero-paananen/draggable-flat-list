@@ -20,6 +20,7 @@ const INITIAL_DATA = Array.from({length: 30}, (_, i) => {
 const App = () => {
   const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
 
+  // Item move done and new item array received
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
       setData(items);
@@ -27,8 +28,10 @@ const App = () => {
     [],
   );
 
+  // Your custom FlatList item
   const MyListItem = React.memo(
     ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+      // Long press fires 'drag' to start item dragging
       const handleLongPress = useCallback(() => {
         drag && drag(item.id);
       }, [drag, item.id]);
