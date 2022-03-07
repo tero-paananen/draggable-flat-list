@@ -1,12 +1,5 @@
 import React, {useMemo, useState, useCallback, useRef, useEffect} from 'react';
-import {
-  View,
-  StyleSheet,
-  PanResponder,
-  Animated,
-  FlatList,
-  Platform,
-} from 'react-native';
+import {View, StyleSheet, PanResponder, Animated, FlatList} from 'react-native';
 import debounce from 'lodash/debounce';
 
 import DraggableItem from './DraggableItem';
@@ -28,15 +21,20 @@ const CustomDraggableFlatList = ({
   renderItem,
   style,
   onHandleMove,
-  selected,
 }: {
   data: Item[];
-  renderItem: (itemData: FlatListItem) => JSX.Element;
+  renderItem: ({
+    item,
+    drag,
+  }: {
+    item: Item;
+    drag?: (id: string) => void;
+  }) => JSX.Element;
   style: any;
   onHandleMove: (fromIndex: number, toIndex: number, data: Item[]) => void;
-  selected?: Item | undefined;
 }) => {
   const [below, setBelow] = useState<Item | undefined>(undefined);
+  const [selected, setSelected] = useState<Item | undefined>(undefined);
   const [layout, setLayout] = useState<{layout: Layout | undefined}>({
     layout: undefined,
   });
@@ -46,6 +44,7 @@ const CustomDraggableFlatList = ({
 
   const dataRef = useRef<Item[]>([]);
   const panningRef = useRef(false);
+  const dragRef = useRef(false);
   const selectedRef = useRef<Item | undefined>(undefined);
   const belowRef = useRef<Item | undefined>(undefined);
   const layoutRef = useRef<Layout | undefined>(undefined);
@@ -70,21 +69,24 @@ const CustomDraggableFlatList = ({
     // https://reactnative.dev/docs/panresponder
     // https://eveningkid.medium.com/the-basics-of-react-native-gestures-23061b5e89cf
     PanResponder.create({
+      // Does this view want to become responder on the start of a touch?
       onStartShouldSetPanResponder: () => false,
-      onStartShouldSetPanResponderCapture: () => false,
 
+      // Should child views be prevented from becoming responder on first touch?
+      onStartShouldSetPanResponderCapture: () => {
+        // const {pageX, pageY} = event.nativeEvent;
+        return false;
+      },
+
+      // Called for every touch move on the View when it is not the responder
+      // does this view want to "claim" touch responsiveness?
       onMoveShouldSetPanResponder: () => {
-        if (Platform.OS === 'windows') {
+        if (dragRef.current && selectedRef.current) {
+          // start capturing panning
           return true;
         } else {
-          if (selectedRef.current) {
-            // wser has done item selection
-            // start capturing panning
-            return true;
-          } else {
-            // user can scroll FlatList
-            return false;
-          }
+          // user can scroll FlatList
+          return false;
         }
       },
       // onMoveShouldSetPanResponderCapture: () => true, // iOS: FlatList is not scrollable if true
@@ -166,14 +168,26 @@ const CustomDraggableFlatList = ({
 
   const endPanning = () => {
     setBelow(undefined);
+    setSelected(undefined);
+    selectedRef.current = undefined;
     pan.setValue({x: 0, y: 0});
     panningRef.current = false;
+    dragRef.current = false;
     startMoveYRef.current = -1;
     currentMoveYRef.current = -1;
     scrollToIndex.current = -1;
     prevScrollDirection.current = 0;
     scrollAnimationRunning.current = false;
     callNextScrollToPoint.current.cancel();
+  };
+
+  const drag = (id: string) => {
+    const index = dataRef.current.findIndex(d => d.id === id);
+    const item = index !== -1 ? dataRef.current[index] : undefined;
+    if (item) {
+      setSelected(item);
+      dragRef.current = true;
+    }
   };
 
   const moveItem = (fromIndex: number, toIndex: number, items: Item[]) => {
@@ -188,7 +202,7 @@ const CustomDraggableFlatList = ({
     setBelow(item);
   };
 
-  const posY = (moveY: number) => {
+  const posFromPanResponderY = (moveY: number) => {
     return moveY - (layoutRef.current?.y || 0) + scrollOffsetY.current;
   };
 
@@ -201,7 +215,7 @@ const CustomDraggableFlatList = ({
   };
 
   const itemIndexFromTouchPoint = (moveY: number, items: Item[]) => {
-    const y = posY(moveY);
+    const y = posFromPanResponderY(moveY);
     const index = items.findIndex((d: Item) => {
       const itemLayout = itemLayoutMapRef.current.get(d.id);
       if (!itemLayout || !layoutRef.current) {
@@ -340,7 +354,10 @@ const CustomDraggableFlatList = ({
 
     return (
       <DraggableItem itemData={itemData} setRef={setRef} below={below?.id}>
-        {renderItem(itemData)}
+        {renderItem({
+          item: itemData.item,
+          drag: drag,
+        })}
       </DraggableItem>
     );
   };

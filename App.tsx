@@ -22,8 +22,8 @@ const App = () => {
   const [selected, setSelected] = useState<Item | undefined>(undefined);
 
   const renderItem = useCallback(
-    ({item}: {item: MyItem}) => {
-      return <MyListItem item={item} />;
+    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+      return <MyListItem item={item} drag={drag} />;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selected],
@@ -31,28 +31,29 @@ const App = () => {
 
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
-      console.log('handleMove ', {fromIndex, toIndex});
       setSelected(undefined);
       setData(items);
     },
     [],
   );
 
-  const MyListItem = React.memo(({item}: {item: MyItem}) => {
-    const handleSelected = useCallback(() => {
-      console.log('selected', {item});
-      item.id === selected?.id ? setSelected(undefined) : setSelected(item);
-    }, [item]);
-    const backgroundColor = item.id === selected?.id ? 'lightgray' : undefined;
-    return (
-      <TouchableOpacity
-        onPress={handleSelected}
-        style={[styles.itemContainer, {backgroundColor}]}
-        key={item.id}>
-        <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
-      </TouchableOpacity>
-    );
-  });
+  const MyListItem = React.memo(
+    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+      const backgroundColor =
+        item.id === selected?.id ? 'lightgray' : undefined;
+      const handleLongPress = useCallback(() => {
+        drag && drag(item.id);
+      }, [drag, item.id]);
+      return (
+        <TouchableOpacity
+          onLongPress={handleLongPress}
+          style={[styles.itemContainer, {backgroundColor}]}
+          key={item.id}>
+          <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
+        </TouchableOpacity>
+      );
+    },
+  );
 
   return (
     <View style={styles.container}>
@@ -60,7 +61,6 @@ const App = () => {
       <DraggableFlatList
         style={styles.list}
         data={data}
-        selected={selected}
         renderItem={renderItem}
         onHandleMove={handleMove}
       />
