@@ -19,40 +19,38 @@ const INITIAL_DATA = Array.from({length: 30}, (_, i) => {
 
 const App = () => {
   const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
-  const [selected, setSelected] = useState<Item | undefined>(undefined);
 
-  const renderItem = useCallback(
-    ({item}: {item: MyItem}) => {
-      return <MyListItem item={item} />;
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selected],
-  );
-
+  // Item move done and new item array received
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
-      console.log('handleMove ', {fromIndex, toIndex});
-      setSelected(undefined);
       setData(items);
     },
     [],
   );
 
-  const MyListItem = React.memo(({item}: {item: MyItem}) => {
-    const handleSelected = useCallback(() => {
-      console.log('selected', {item});
-      item.id === selected?.id ? setSelected(undefined) : setSelected(item);
-    }, [item]);
-    const backgroundColor = item.id === selected?.id ? 'lightgray' : undefined;
-    return (
-      <TouchableOpacity
-        onPress={handleSelected}
-        style={[styles.itemContainer, {backgroundColor}]}
-        key={item.id}>
-        <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
-      </TouchableOpacity>
-    );
-  });
+  // Your custom FlatList item
+  const MyListItem = React.memo(
+    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+      // Long press fires 'drag' to start item dragging
+      const handleLongPress = useCallback(() => {
+        drag && drag(item.id);
+      }, [drag, item.id]);
+      return (
+        <TouchableOpacity
+          onLongPress={handleLongPress}
+          style={styles.itemContainer}
+          key={item.id}>
+          <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
+        </TouchableOpacity>
+      );
+    },
+  );
+  const renderItem = useCallback(
+    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+      return <MyListItem item={item} drag={drag} />;
+    },
+    [],
+  );
 
   return (
     <View style={styles.container}>
@@ -60,7 +58,6 @@ const App = () => {
       <DraggableFlatList
         style={styles.list}
         data={data}
-        selected={selected}
         renderItem={renderItem}
         onHandleMove={handleMove}
       />
