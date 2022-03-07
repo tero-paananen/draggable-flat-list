@@ -19,19 +19,9 @@ const INITIAL_DATA = Array.from({length: 30}, (_, i) => {
 
 const App = () => {
   const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
-  const [selected, setSelected] = useState<Item | undefined>(undefined);
-
-  const renderItem = useCallback(
-    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
-      return <MyListItem item={item} drag={drag} />;
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selected],
-  );
 
   const handleMove = useCallback(
     (fromIndex: number, toIndex: number, items: Item[]) => {
-      setSelected(undefined);
       setData(items);
     },
     [],
@@ -39,20 +29,24 @@ const App = () => {
 
   const MyListItem = React.memo(
     ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
-      const backgroundColor =
-        item.id === selected?.id ? 'lightgray' : undefined;
       const handleLongPress = useCallback(() => {
         drag && drag(item.id);
       }, [drag, item.id]);
       return (
         <TouchableOpacity
           onLongPress={handleLongPress}
-          style={[styles.itemContainer, {backgroundColor}]}
+          style={styles.itemContainer}
           key={item.id}>
           <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
         </TouchableOpacity>
       );
     },
+  );
+  const renderItem = useCallback(
+    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+      return <MyListItem item={item} drag={drag} />;
+    },
+    [],
   );
 
   return (
