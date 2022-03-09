@@ -344,25 +344,28 @@ const CustomDraggableFlatList = ({
     );
   };
 
-  const renderFlatListItem = (itemData: FlatListItem) => {
-    const setRef = (ref: React.RefObject<View>) => {
-      // store item ref
-      listItemsRef.current.set(itemData.item.id, ref);
-      // and measure item position
-      measureRef(ref, itemData.item.id);
-    };
+  const renderFlatListItem = useCallback(
+    (itemData: FlatListItem) => {
+      const setRef = (ref: React.RefObject<View>) => {
+        // store item ref
+        listItemsRef.current.set(itemData.item.id, ref);
+        // and measure item position
+        measureRef(ref, itemData.item.id);
+      };
 
-    return (
-      <DraggableItem itemData={itemData} setRef={setRef} below={below?.id}>
-        {renderItem({
-          item: itemData.item,
-          drag: drag,
-        })}
-      </DraggableItem>
-    );
-  };
+      return (
+        <DraggableItem itemData={itemData} setRef={setRef} below={below?.id}>
+          {renderItem({
+            item: itemData.item,
+            drag: drag,
+          })}
+        </DraggableItem>
+      );
+    },
+    [below?.id, renderItem],
+  );
 
-  const renderFlyingItem = () => {
+  const renderFlyingItem = useCallback(() => {
     if (selected && panningRef.current && layout.layout) {
       return (
         <Animated.View
@@ -377,7 +380,7 @@ const CustomDraggableFlatList = ({
     } else {
       return null;
     }
-  };
+  }, [layout.layout, pan.y, renderItem, selected]);
 
   const handleLayout = useCallback((e: any) => {
     setLayout({layout: e.nativeEvent.layout});
