@@ -22,5 +22,5 @@
       "*": ["src/*"]
     }
   },
-  "include": ["*"]
+  "include": ["*", "src/App.tsx", "src/DraggableItem.tsx", "src/DraggableFlatList.tsx"]
 }
