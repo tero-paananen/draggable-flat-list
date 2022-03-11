@@ -63,6 +63,7 @@ const App = () => {
         data={data}
         renderItem={renderItem}
         onHandleMove={handleMove}
+        flyingItemStyle={styles.flying}
       />
       <View style={styles.footer} />
     </View>
