@@ -51,6 +51,8 @@ const CustomDraggableFlatList = ({
     layout: undefined,
   });
 
+  const [userPanningDirection, setUserPanningDirection] = useState(0);
+
   const itemLayoutMapRef = useRef<Map<string, ItemLayout>>(new Map());
   const listItemsRef = useRef<Map<string, React.RefObject<View>>>(new Map());
 
@@ -118,10 +120,16 @@ const CustomDraggableFlatList = ({
         pan.setValue({ x: moveX, y: moveY });
         panningRef.current = true;
 
+        const prevY = previousOffsetY.current;
         if (isMovingEnought(moveY)) {
           callNextScrollToPoint.current.cancel();
           callNextScrollToPoint.current();
           showWhereToDrop(moveY, dataRef.current);
+
+          const userScrollingUp = currentMoveYRef.current < prevY;
+          setUserPanningDirection(
+            userScrollingUp ? SCROLL_DIRECTION_UP : SCROLL_DIRECTION_DOWN
+          );
         }
       },
 
@@ -182,6 +190,7 @@ const CustomDraggableFlatList = ({
   const endPanning = () => {
     setBelow(undefined);
     setSelected(undefined);
+    setUserPanningDirection(0);
     selectedRef.current = undefined;
     pan.setValue({ x: 0, y: 0 });
     panningRef.current = false;
@@ -366,7 +375,12 @@ const CustomDraggableFlatList = ({
       };
 
       return (
-        <DraggableItem itemData={itemData} setRef={setRef} below={below?.id}>
+        <DraggableItem
+          itemData={itemData}
+          setRef={setRef}
+          below={below?.id}
+          userIsScrollingUp={userPanningDirection === SCROLL_DIRECTION_UP}
+        >
           {renderItem({
             item: itemData.item,
             drag: drag,
@@ -374,7 +388,7 @@ const CustomDraggableFlatList = ({
         </DraggableItem>
       );
     },
-    [below?.id, renderItem]
+    [SCROLL_DIRECTION_UP, below?.id, renderItem, userPanningDirection]
   );
 
   const renderFlyingItem = useCallback(() => {
