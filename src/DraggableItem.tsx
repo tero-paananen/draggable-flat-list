@@ -1,6 +1,6 @@
-import {FlatListItem} from './DraggableFlatList';
-import React, {useMemo, useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import { FlatListItem } from './DraggableFlatList';
+import React, { useMemo, useCallback, useRef } from 'react';
+import { View } from 'react-native';
 
 const DraggableItem = ({
   itemData,
@@ -13,17 +13,17 @@ const DraggableItem = ({
   below?: string;
   setRef: (ref: React.RefObject<View>) => void;
 }) => {
-  const {item} = itemData;
+  const { item } = itemData;
   const isBelow = item.id === below;
   const itemRef = useRef<View>(null);
 
   const handleLayout = useCallback(() => {
-    setRef(itemRef); // only get reference into item
+    setRef(itemRef); // only get reference int o item
   }, [setRef]);
 
   const style = useMemo(() => {
     const color = isBelow ? '#ededed' : 'transparent';
-    return {...{backgroundColor: color}, ...{height: item.height}};
+    return { ...{ backgroundColor: color }, ...{ height: item.height } };
   }, [isBelow, item.height]);
 
   return (

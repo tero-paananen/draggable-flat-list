@@ -1,5 +1,17 @@
-import React, {useMemo, useState, useCallback, useRef, useEffect} from 'react';
-import {View, StyleSheet, PanResponder, Animated, FlatList} from 'react-native';
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react';
+import {
+  View,
+  StyleSheet,
+  PanResponder,
+  Animated,
+  FlatList,
+} from 'react-native';
 import debounce from 'lodash/debounce';
 
 import DraggableItem from './DraggableItem';
@@ -13,8 +25,8 @@ export type FlatListItem = {
   item: Item;
 };
 
-type Layout = {y: number; height: number};
-type ItemLayout = {id: string; y: number; height: number};
+type Layout = { y: number; height: number };
+type ItemLayout = { id: string; y: number; height: number };
 
 const CustomDraggableFlatList = ({
   data,
@@ -35,7 +47,7 @@ const CustomDraggableFlatList = ({
 }) => {
   const [below, setBelow] = useState<Item | undefined>(undefined);
   const [selected, setSelected] = useState<Item | undefined>(undefined);
-  const [layout, setLayout] = useState<{layout: Layout | undefined}>({
+  const [layout, setLayout] = useState<{ layout: Layout | undefined }>({
     layout: undefined,
   });
 
@@ -73,8 +85,8 @@ const CustomDraggableFlatList = ({
 
       // Should child views be prevented from becoming responder on first touch?
       onStartShouldSetPanResponderCapture: (event: any) => {
-        const {pageX, pageY} = event.nativeEvent;
-        pan.setValue({x: pageX, y: pageY});
+        const { pageX, pageY } = event.nativeEvent;
+        pan.setValue({ x: pageX, y: pageY });
 
         return false;
       },
@@ -97,13 +109,13 @@ const CustomDraggableFlatList = ({
         if (!layoutRef.current) {
           return;
         }
-        const {moveX, moveY} = gestureState;
+        const { moveX, moveY } = gestureState;
         if (startMoveYRef.current === -1) {
           startMoveYRef.current = moveY;
         }
         currentMoveYRef.current = moveY;
 
-        pan.setValue({x: moveX, y: moveY});
+        pan.setValue({ x: moveX, y: moveY });
         panningRef.current = true;
 
         if (isMovingEnought(moveY)) {
@@ -116,7 +128,7 @@ const CustomDraggableFlatList = ({
       onPanResponderTerminationRequest: () => true,
 
       onPanResponderRelease: (event: any, gestureState: any) => {
-        const {moveY} = gestureState;
+        const { moveY } = gestureState;
         const releasedOnItem = itemFromTouchPoint(moveY, dataRef.current);
         selectedRef.current &&
           releasedOnItem &&
@@ -131,7 +143,7 @@ const CustomDraggableFlatList = ({
       onShouldBlockNativeResponder: () => {
         return true;
       },
-    }),
+    })
   ).current;
 
   const callNextScrollToPoint = useRef(
@@ -142,8 +154,8 @@ const CustomDraggableFlatList = ({
         }
       },
       200,
-      {leading: false, trailing: true},
-    ),
+      { leading: false, trailing: true }
+    )
   );
 
   const handleMove = (sourceItem: Item, targetItem: Item) => {
@@ -171,7 +183,7 @@ const CustomDraggableFlatList = ({
     setBelow(undefined);
     setSelected(undefined);
     selectedRef.current = undefined;
-    pan.setValue({x: 0, y: 0});
+    pan.setValue({ x: 0, y: 0 });
     panningRef.current = false;
     startMoveYRef.current = -1;
     currentMoveYRef.current = -1;
@@ -340,7 +352,7 @@ const CustomDraggableFlatList = ({
           y,
           height,
         });
-      },
+      }
     );
   };
 
@@ -362,7 +374,7 @@ const CustomDraggableFlatList = ({
         </DraggableItem>
       );
     },
-    [below?.id, renderItem],
+    [below?.id, renderItem]
   );
 
   const renderFlyingItem = useCallback(() => {
@@ -371,10 +383,11 @@ const CustomDraggableFlatList = ({
         <Animated.View
           style={[
             styles.flying,
-            {top: -layout.layout.y * 1.5},
-            {transform: [{translateY: pan.y}]},
-          ]}>
-          {renderItem({item: selected})}
+            { top: -layout.layout.y * 1.5 },
+            { transform: [{ translateY: pan.y }] },
+          ]}
+        >
+          {renderItem({ item: selected })}
         </Animated.View>
       );
     } else {
@@ -383,7 +396,7 @@ const CustomDraggableFlatList = ({
   }, [layout.layout, pan.y, renderItem, selected]);
 
   const handleLayout = useCallback((e: any) => {
-    setLayout({layout: e.nativeEvent.layout});
+    setLayout({ layout: e.nativeEvent.layout });
   }, []);
 
   const handleScroll = useCallback((e: any) => {
@@ -391,18 +404,19 @@ const CustomDraggableFlatList = ({
   }, []);
 
   const containerStyle = useMemo(() => {
-    return {...styles.container, ...style};
+    return { ...styles.container, ...style };
   }, [style]);
 
   const extraData = useMemo(() => {
-    return {below, selected};
+    return { below, selected };
   }, [below, selected]);
 
   return (
     <View
       style={containerStyle}
       {...panResponder.panHandlers}
-      onLayout={handleLayout}>
+      onLayout={handleLayout}
+    >
       <FlatList
         style={styles.list}
         ref={flatListRef}
