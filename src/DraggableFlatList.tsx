@@ -11,6 +11,8 @@ import {
   PanResponder,
   Animated,
   FlatList,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import debounce from 'lodash/debounce';
 
@@ -33,6 +35,7 @@ const CustomDraggableFlatList = ({
   renderItem,
   style,
   onHandleMove,
+  flyingItemStyle,
 }: {
   data: Item[];
   renderItem: ({
@@ -42,8 +45,9 @@ const CustomDraggableFlatList = ({
     item: Item;
     drag?: (id: string) => void;
   }) => JSX.Element;
-  style: any;
+  style: StyleProp<ViewStyle>;
   onHandleMove: (fromIndex: number, toIndex: number, data: Item[]) => void;
+  flyingItemStyle: StyleProp<ViewStyle>;
 }) => {
   const [below, setBelow] = useState<Item | undefined>(undefined);
   const [selected, setSelected] = useState<Item | undefined>(undefined);
@@ -386,6 +390,7 @@ const CustomDraggableFlatList = ({
         <Animated.View
           style={[
             styles.flying,
+            flyingItemStyle,
             { top: -layout.layout.y * 1.5 },
             { transform: [{ translateY: pan.y }] },
           ]}
@@ -396,7 +401,7 @@ const CustomDraggableFlatList = ({
     } else {
       return null;
     }
-  }, [layout.layout, pan.y, renderItem, selected]);
+  }, [flyingItemStyle, layout.layout, pan.y, renderItem, selected]);
 
   const handleLayout = useCallback((e: any) => {
     setLayout({ layout: e.nativeEvent.layout });
@@ -407,7 +412,7 @@ const CustomDraggableFlatList = ({
   }, []);
 
   const containerStyle = useMemo(() => {
-    return { ...styles.container, ...style };
+    return [{ ...styles.container }, style];
   }, [style]);
 
   const extraData = useMemo(() => {
@@ -447,8 +452,6 @@ const styles = StyleSheet.create({
   },
   flying: {
     position: 'absolute',
-    backgroundColor: 'lightgray',
-    opacity: 0.8,
   },
 });
 
