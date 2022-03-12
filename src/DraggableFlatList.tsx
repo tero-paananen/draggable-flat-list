@@ -50,24 +50,27 @@ const CustomDraggableFlatList = ({
   flyingItemStyle: StyleProp<ViewStyle>;
 }) => {
   const [below, setBelow] = useState<Item | undefined>(undefined);
+  const belowRef = useRef<Item | undefined>(undefined);
+
   const [selected, setSelected] = useState<Item | undefined>(undefined);
+  const selectedRef = useRef<Item | undefined>(undefined);
+
   const [layout, setLayout] = useState<{ layout: Layout | undefined }>({
     layout: undefined,
   });
+  const layoutRef = useRef<Layout | undefined>(undefined);
 
-  const [userPanningDirection, setUserPanningDirection] = useState(0);
+  const [draggingDirection, setDraggingDirection] = useState(0);
+  const dragDirection = useRef(0);
 
   const itemLayoutMapRef = useRef<Map<string, ItemLayout>>(new Map());
   const listItemsRef = useRef<Map<string, React.RefObject<View>>>(new Map());
 
   const dataRef = useRef<Item[]>([]);
-  const panningRef = useRef(false);
-  const selectedRef = useRef<Item | undefined>(undefined);
-  const belowRef = useRef<Item | undefined>(undefined);
-  const layoutRef = useRef<Layout | undefined>(undefined);
-  const previousOffsetY = useRef(0);
   const flatListRef = useRef<FlatList | null>(null);
 
+  const previousOffsetY = useRef(0);
+  const panningRef = useRef(false);
   const pan = useRef(new Animated.ValueXY()).current;
   const prevScrollDirection = useRef(0);
   const scrollToIndex = useRef(-1);
@@ -131,9 +134,10 @@ const CustomDraggableFlatList = ({
           showWhereToDrop(moveY, dataRef.current);
 
           const userScrollingUp = currentMoveYRef.current < prevY;
-          setUserPanningDirection(
-            userScrollingUp ? SCROLL_DIRECTION_UP : SCROLL_DIRECTION_DOWN
-          );
+          dragDirection.current = userScrollingUp
+            ? SCROLL_DIRECTION_UP
+            : SCROLL_DIRECTION_DOWN;
+          setDraggingDirection(dragDirection.current);
         }
       },
 
@@ -177,9 +181,9 @@ const CustomDraggableFlatList = ({
 
       if (fromIndex !== toIndex && fromIndex !== -1 && toIndex !== -1) {
         // positioned on top of target item
-        if (fromIndex < toIndex && toIndex > fromIndex + 1) {
+        if (fromIndex < toIndex && toIndex > fromIndex) {
           // moving item to down
-          toIndex--;
+          dragDirection.current === SCROLL_DIRECTION_UP && toIndex--;
           const newData = moveItem(fromIndex, toIndex, dataRef.current);
           onHandleMove(fromIndex, toIndex, newData);
         } else if (fromIndex > toIndex) {
@@ -194,7 +198,8 @@ const CustomDraggableFlatList = ({
   const endPanning = () => {
     setBelow(undefined);
     setSelected(undefined);
-    setUserPanningDirection(0);
+    setDraggingDirection(0);
+    dragDirection.current = 0;
     selectedRef.current = undefined;
     pan.setValue({ x: 0, y: 0 });
     panningRef.current = false;
@@ -366,11 +371,12 @@ const CustomDraggableFlatList = ({
     layoutRef.current = layout?.layout;
     belowRef.current = below;
 
-    // Measure item positions when selection ends / no selection
-    if (selected === undefined) {
-      setTimeout(measureItems, 100);
-    }
-  }, [below, data, layout?.layout, measureItems, selected]);
+    // Measure item positions for example
+    // - when selection ends (selected)
+    // - when size of below changes
+    // - when dragging direction changes
+    setTimeout(measureItems, 100);
+  }, [below, data, layout?.layout, measureItems, selected, draggingDirection]);
 
   const renderFlatListItem = useCallback(
     (itemData: FlatListItem) => {
@@ -386,7 +392,7 @@ const CustomDraggableFlatList = ({
           itemData={itemData}
           setRef={setRef}
           below={below?.id}
-          userIsScrollingUp={userPanningDirection === SCROLL_DIRECTION_UP}
+          userIsScrollingUp={draggingDirection === SCROLL_DIRECTION_UP}
         >
           {renderItem({
             item: itemData.item,
@@ -395,7 +401,7 @@ const CustomDraggableFlatList = ({
         </DraggableItem>
       );
     },
-    [SCROLL_DIRECTION_UP, below?.id, renderItem, userPanningDirection]
+    [SCROLL_DIRECTION_UP, below?.id, renderItem, draggingDirection]
   );
 
   const renderFlyingItem = useCallback(() => {
