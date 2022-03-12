@@ -174,7 +174,7 @@ const CustomDraggableFlatList = ({
           toIndex--;
           const newData = moveItem(fromIndex, toIndex, dataRef.current);
           onHandleMove(fromIndex, toIndex, newData);
-        } else if (fromIndex > toIndex && fromIndex > toIndex + 1) {
+        } else if (fromIndex > toIndex) {
           // moving item to up
           const newData = moveItem(fromIndex, toIndex, dataRef.current);
           onHandleMove(fromIndex, toIndex, newData);
