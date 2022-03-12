@@ -1,4 +1,4 @@
-# draggable-flat-list with example applications for Windows, iOS and Android
+# Example applications with draggable FlatList for Windows, iOS and Android
 
 React Native FlatList component whose items can be drag into new positions. This component **does NOT use** [React Native Reanimated](https://github.com/software-mansion/react-native-reanimated) or [React Native Gesture Handler](https://github.com/software-mansion/react-native-gesture-handler) and that is why this works also on React Native Windows.
 
@@ -16,6 +16,15 @@ Not tested in production.
 "react-native": "^0.65.0",
 "react-native-windows": "0.65.8"
 ```
+
+## DraggableFlatList API
+
+- `style` container view style of FlatList
+- `data` items for FlatList these have to implement `Item` type 
+- `renderItem` function `({item, drag})` for rendering your item into FlatList. Call `drag` to start item dragging
+- `onHandleMove` called when item is moved into new position. New `items` data is as argument.
+- `flyingItemStyle` style for item that is under dragging and is flying on FlatList
+
 
 ## Usage
 
@@ -63,6 +72,7 @@ const App = () => {
         data={data}
         renderItem={renderItem}
         onHandleMove={handleMove}
+        flyingItemStyle={styles.flying}
       />
       <View style={styles.footer} />
     </View>
@@ -70,6 +80,9 @@ const App = () => {
 };
 
 ```
+
+
+## Screenshots
 
 
 https://user-images.githubusercontent.com/54746036/157134252-e8f17a63-d3cc-41ba-a054-46bc6bb97c3c.mov

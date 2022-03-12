@@ -1,6 +1,6 @@
-import React, {useCallback, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import DraggableFlatList, {Item} from './DraggableFlatList';
+import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import DraggableFlatList, { Item } from './DraggableFlatList';
 
 const ITEM_HEIGHT = 50;
 const ITEM_WIDTH = 300;
@@ -9,7 +9,7 @@ type MyItem = Item & {
   title?: string;
 };
 
-const INITIAL_DATA = Array.from({length: 30}, (_, i) => {
+const INITIAL_DATA = Array.from({ length: 30 }, (_, i) => {
   return {
     id: i + '',
     title: 'Lorem ipsum dolor sit amet ' + i,
@@ -25,12 +25,12 @@ const App = () => {
     (fromIndex: number, toIndex: number, items: Item[]) => {
       setData(items);
     },
-    [],
+    []
   );
 
   // Your custom FlatList item
   const MyListItem = React.memo(
-    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+    ({ item, drag }: { item: MyItem; drag?: (id: string) => void }) => {
       // Long press fires 'drag' to start item dragging
       const handleLongPress = useCallback(() => {
         drag && drag(item.id);
@@ -39,17 +39,20 @@ const App = () => {
         <TouchableOpacity
           onLongPress={handleLongPress}
           style={styles.itemContainer}
-          key={item.id}>
-          <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
+          key={item.id}
+        >
+          <Text style={[styles.item, { height: item.height }]}>
+            {item.title}
+          </Text>
         </TouchableOpacity>
       );
-    },
+    }
   );
   const renderItem = useCallback(
-    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+    ({ item, drag }: { item: MyItem; drag?: (id: string) => void }) => {
       return <MyListItem item={item} drag={drag} />;
     },
-    [],
+    [MyListItem]
   );
 
   return (
@@ -60,6 +63,7 @@ const App = () => {
         data={data}
         renderItem={renderItem}
         onHandleMove={handleMove}
+        flyingItemStyle={styles.flying}
       />
       <View style={styles.footer} />
     </View>
@@ -93,6 +97,10 @@ const styles = StyleSheet.create({
   footer: {
     height: 50,
     backgroundColor: '#065A95',
+  },
+  flying: {
+    backgroundColor: 'lightgray',
+    opacity: 0.8,
   },
 });
 
