@@ -233,8 +233,7 @@ const CustomDraggableFlatList = ({
       if (!itemLayout || !layoutRef.current) {
         return false;
       }
-      const itemY = itemLayout.y - layoutRef.current.y + scrollOffsetY.current;
-      return itemLayout && y > itemY && y < itemY + itemLayout.height;
+      return y > itemLayout.y && y < itemLayout.y + itemLayout.height;
     });
     return index;
   };
@@ -326,35 +325,39 @@ const CustomDraggableFlatList = ({
     callNextScrollToPoint.current();
   };
 
-  useEffect(() => {
-    dataRef.current = data;
-    selectedRef.current = selected;
-    layoutRef.current = layout?.layout;
-    belowRef.current = below;
-
-    const measureItems = () => {
-      // measure all item refs positions
-      for (const id of listItemsRef.current.keys()) {
-        const ref = listItemsRef.current.get(id);
-        if (ref) {
-          measureRef(ref, id);
-        }
+  const measureItems = useCallback(() => {
+    // measure all item refs positions
+    for (const id of listItemsRef.current.keys()) {
+      const ref = listItemsRef.current.get(id);
+      if (ref) {
+        measureRef(ref, id);
       }
-    };
-    measureItems();
-  }, [below, data, layout?.layout, selected]);
+    }
+  }, []);
 
   const measureRef = (ref: React.RefObject<View>, id: string) => {
     ref.current?.measureInWindow(
       (x: number, y: number, width: number, height: number) => {
         itemLayoutMapRef.current.set(id, {
           id,
-          y,
+          y: y + scrollOffsetY.current - (layoutRef.current?.y || 0),
           height,
         });
       }
     );
   };
+
+  useEffect(() => {
+    dataRef.current = data;
+    selectedRef.current = selected;
+    layoutRef.current = layout?.layout;
+    belowRef.current = below;
+
+    // Measure item positions when selection ends / no selection
+    if (selected === undefined) {
+      setTimeout(measureItems, 100);
+    }
+  }, [below, data, layout?.layout, measureItems, selected]);
 
   const renderFlatListItem = useCallback(
     (itemData: FlatListItem) => {
