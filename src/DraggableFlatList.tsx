@@ -329,7 +329,10 @@ const CustomDraggableFlatList = ({
       viewPosition = 1;
     }
 
-    if (scrollToIndex.current < 0 || scrollToIndex.current > data.length - 1) {
+    if (
+      scrollToIndex.current < 0 ||
+      scrollToIndex.current > dataRef.current.length - 1
+    ) {
       cancel();
       return;
     }
