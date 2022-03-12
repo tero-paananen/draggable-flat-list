@@ -378,7 +378,7 @@ const CustomDraggableFlatList = ({
     // - when selection ends (selected)
     // - when size of below changes
     // - when dragging direction changes
-    setTimeout(measureItems, 0);
+    setTimeout(measureItems, 100);
   }, [below, data, layout?.layout, measureItems, selected, draggingDirection]);
 
   const renderFlatListItem = useCallback(
