@@ -8,12 +8,14 @@ const DraggableItem = ({
   below,
   setRef,
   userIsScrollingUp,
+  mode,
 }: {
   itemData: FlatListItem;
   children?: JSX.Element;
   below?: string;
   setRef: (ref: React.RefObject<View>) => void;
   userIsScrollingUp: boolean | undefined;
+  mode: 'default' | 'expands';
 }) => {
   const { item } = itemData;
   const itemRef = useRef<View>(null);
@@ -25,11 +27,16 @@ const DraggableItem = ({
   }, [setRef]);
 
   const style = useMemo(() => {
-    const height = isBelow ? item.height * 2 : item.height;
-    return Boolean(userIsScrollingUp) === true
-      ? [styles.up, { height: height }]
-      : [styles.down, { height: height }];
-  }, [isBelow, item.height, userIsScrollingUp]);
+    if (mode === 'default') {
+      const color = isBelow ? '#ededed' : 'transparent';
+      return { ...{ backgroundColor: color }, ...{ height: item.height } };
+    } else {
+      const height = isBelow ? item.height * 2 : item.height;
+      return Boolean(userIsScrollingUp) === true
+        ? [styles.up, { height: height }]
+        : [styles.down, { height: height }];
+    }
+  }, [isBelow, item.height, mode, userIsScrollingUp]);
 
   return (
     <View style={style} ref={itemRef} onLayout={handleLayout}>

@@ -36,6 +36,7 @@ const CustomDraggableFlatList = ({
   style,
   onHandleMove,
   flyingItemStyle,
+  mode = 'default',
 }: {
   data: Item[];
   renderItem: ({
@@ -48,6 +49,7 @@ const CustomDraggableFlatList = ({
   style: StyleProp<ViewStyle>;
   onHandleMove: (fromIndex: number, toIndex: number, data: Item[]) => void;
   flyingItemStyle: StyleProp<ViewStyle>;
+  mode?: 'default' | 'expands';
 }) => {
   const [below, setBelow] = useState<Item | undefined>(undefined);
   const belowRef = useRef<Item | undefined>(undefined);
@@ -183,7 +185,9 @@ const CustomDraggableFlatList = ({
         // positioned on top of target item
         if (fromIndex < toIndex && toIndex > fromIndex) {
           // moving item to down
-          dragDirection.current === SCROLL_DIRECTION_UP && toIndex--;
+          (dragDirection.current === SCROLL_DIRECTION_UP ||
+            mode === 'default') &&
+            toIndex--;
           const newData = moveItem(fromIndex, toIndex, dataRef.current);
           onHandleMove(fromIndex, toIndex, newData);
         } else if (fromIndex > toIndex) {
@@ -396,6 +400,7 @@ const CustomDraggableFlatList = ({
           setRef={setRef}
           below={below?.id}
           userIsScrollingUp={draggingDirection === SCROLL_DIRECTION_UP}
+          mode={mode}
         >
           {renderItem({
             item: itemData.item,
@@ -404,7 +409,7 @@ const CustomDraggableFlatList = ({
         </DraggableItem>
       );
     },
-    [SCROLL_DIRECTION_UP, below?.id, renderItem, draggingDirection]
+    [below?.id, draggingDirection, SCROLL_DIRECTION_UP, mode, renderItem]
   );
 
   const renderFlyingItem = useCallback(() => {
