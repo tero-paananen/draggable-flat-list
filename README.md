@@ -1,4 +1,4 @@
-# draggable-flat-list with example applications for Windows, iOS and Android
+# Example applications with draggable FlatList for Windows, iOS and Android
 
 React Native FlatList component whose items can be drag into new positions. This component **does NOT use** [React Native Reanimated](https://github.com/software-mansion/react-native-reanimated) or [React Native Gesture Handler](https://github.com/software-mansion/react-native-gesture-handler) and that is why this works also on React Native Windows.
 
@@ -19,12 +19,12 @@ Not tested in production.
 
 ## DraggableFlatList API
 
+- `mode` Two different item drop position indicators. `default` shows position using background color below target item or `expands` that expands other items to show where item will be dropped
 - `style` container view style of FlatList
-- `data` items for FlatList these have to implement `Item` type 
+- `data` items for FlatList these have to implement `Item` type
 - `renderItem` function `({item, drag})` for rendering your item into FlatList. Call `drag` to start item dragging
 - `onHandleMove` called when item is moved into new position. New `items` data is as argument.
 - `flyingItemStyle` style for item that is under dragging and is flying on FlatList
-
 
 ## Usage
 
@@ -68,6 +68,7 @@ const App = () => {
     <View style={styles.container}>
       <View style={styles.header} />
       <DraggableFlatList
+        mode={'expands'} // default or expands
         style={styles.list}
         data={data}
         renderItem={renderItem}
@@ -81,12 +82,12 @@ const App = () => {
 
 ```
 
+## Videos
 
-## Screenshots
-
-
-https://user-images.githubusercontent.com/54746036/157134252-e8f17a63-d3cc-41ba-a054-46bc6bb97c3c.mov
+https://user-images.githubusercontent.com/54746036/158882249-dabd6906-a1db-4863-8edf-7dafc4dcd7f6.mov
 
 
+https://user-images.githubusercontent.com/54746036/158882277-ecbd8123-85b8-4b73-9b29-3a8bcde7e9ba.mov
 
-![win](https://user-images.githubusercontent.com/54746036/156190545-1d8509ed-6ba7-4d36-a8a4-89fd1b0e4d12.jpg)
+
+

@@ -59,6 +59,7 @@ const App = () => {
     <View style={styles.container}>
       <View style={styles.header} />
       <DraggableFlatList
+        mode={'expands'}
         style={styles.list}
         data={data}
         renderItem={renderItem}
