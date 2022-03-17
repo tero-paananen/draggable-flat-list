@@ -19,12 +19,12 @@ Not tested in production.
 
 ## DraggableFlatList API
 
+- `mode` Two different item drop position indicators. `default` shows position using background color below target item or `expands` that expands other items to show where item will be dropped
 - `style` container view style of FlatList
-- `data` items for FlatList these have to implement `Item` type 
+- `data` items for FlatList these have to implement `Item` type
 - `renderItem` function `({item, drag})` for rendering your item into FlatList. Call `drag` to start item dragging
 - `onHandleMove` called when item is moved into new position. New `items` data is as argument.
 - `flyingItemStyle` style for item that is under dragging and is flying on FlatList
-
 
 ## Usage
 
@@ -68,6 +68,7 @@ const App = () => {
     <View style={styles.container}>
       <View style={styles.header} />
       <DraggableFlatList
+        mode={'expands'} // default or expands
         style={styles.list}
         data={data}
         renderItem={renderItem}
@@ -81,12 +82,8 @@ const App = () => {
 
 ```
 
-
 ## Screenshots
 
-
 https://user-images.githubusercontent.com/54746036/157134252-e8f17a63-d3cc-41ba-a054-46bc6bb97c3c.mov
-
-
 
 ![win](https://user-images.githubusercontent.com/54746036/156190545-1d8509ed-6ba7-4d36-a8a4-89fd1b0e4d12.jpg)
