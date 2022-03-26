@@ -18,13 +18,8 @@ import debounce from 'lodash/debounce';
 
 import DraggableItem from './DraggableItem';
 
-export type Item = {
+export type DraggableFlatListItem = {
   id: string;
-  height: number;
-};
-
-export type FlatListItem = {
-  item: Item;
 };
 
 type Layout = { y: number; height: number };
@@ -34,28 +29,44 @@ const CustomDraggableFlatList = ({
   data,
   renderItem,
   style,
-  onHandleMove,
+  onMoveEnd,
   flyingItemStyle,
   mode = 'default',
+  itemHeight = 50,
 }: {
-  data: Item[];
+  data: DraggableFlatListItem[];
   renderItem: ({
     item,
-    drag,
+    move,
+    index,
   }: {
-    item: Item;
-    drag?: (id: string) => void;
+    item: DraggableFlatListItem;
+    move: (id: string) => void;
+    index: number;
   }) => JSX.Element;
   style: StyleProp<ViewStyle>;
-  onHandleMove: (fromIndex: number, toIndex: number, data: Item[]) => void;
+  onMoveEnd: ({
+    from,
+    to,
+    items,
+  }: {
+    from: number;
+    to: number;
+    items: DraggableFlatListItem[];
+  }) => void;
   flyingItemStyle: StyleProp<ViewStyle>;
   mode?: 'default' | 'expands';
+  itemHeight: number;
 }) => {
-  const [below, setBelow] = useState<Item | undefined>(undefined);
-  const belowRef = useRef<Item | undefined>(undefined);
+  const [below, setBelow] = useState<DraggableFlatListItem | undefined>(
+    undefined
+  );
+  const belowRef = useRef<DraggableFlatListItem | undefined>(undefined);
 
-  const [selected, setSelected] = useState<Item | undefined>(undefined);
-  const selectedRef = useRef<Item | undefined>(undefined);
+  const [selected, setSelected] = useState<DraggableFlatListItem | undefined>(
+    undefined
+  );
+  const selectedRef = useRef<DraggableFlatListItem | undefined>(undefined);
 
   const [layout, setLayout] = useState<{ layout: Layout | undefined }>({
     layout: undefined,
@@ -68,7 +79,7 @@ const CustomDraggableFlatList = ({
   const itemLayoutMapRef = useRef<Map<string, ItemLayout>>(new Map());
   const listItemsRef = useRef<Map<string, React.RefObject<View>>>(new Map());
 
-  const dataRef = useRef<Item[]>([]);
+  const dataRef = useRef<DraggableFlatListItem[]>([]);
   const flatListRef = useRef<FlatList | null>(null);
 
   const previousOffsetY = useRef(0);
@@ -176,24 +187,27 @@ const CustomDraggableFlatList = ({
     )
   );
 
-  const handleMove = (sourceItem: Item, targetItem: Item) => {
+  const handleMove = (
+    sourceItem: DraggableFlatListItem,
+    targetItem: DraggableFlatListItem
+  ) => {
     if (sourceItem && targetItem) {
-      let fromIndex = dataIndexFromItem(sourceItem);
-      let toIndex = dataIndexFromItem(targetItem);
+      let from = dataIndexFromItem(sourceItem);
+      let to = dataIndexFromItem(targetItem);
 
-      if (fromIndex !== toIndex && fromIndex !== -1 && toIndex !== -1) {
+      if (from !== to && from !== -1 && to !== -1) {
         // positioned on top of target item
-        if (fromIndex < toIndex && toIndex > fromIndex) {
+        if (from < to && to > from) {
           // moving item to down
           (dragDirection.current === SCROLL_DIRECTION_UP ||
             mode === 'default') &&
-            toIndex--;
-          const newData = moveItem(fromIndex, toIndex, dataRef.current);
-          onHandleMove(fromIndex, toIndex, newData);
-        } else if (fromIndex > toIndex) {
+            to--;
+          const newData = moveItem(from, to, dataRef.current);
+          onMoveEnd({ from, to, items: newData });
+        } else if (from > to) {
           // moving item to up
-          const newData = moveItem(fromIndex, toIndex, dataRef.current);
-          onHandleMove(fromIndex, toIndex, newData);
+          const newData = moveItem(from, to, dataRef.current);
+          onMoveEnd({ from, to, items: newData });
         }
       }
     }
@@ -215,7 +229,7 @@ const CustomDraggableFlatList = ({
     callNextScrollToPoint.current.cancel();
   };
 
-  const drag = (id: string) => {
+  const move = (id: string) => {
     const index = dataRef.current.findIndex(d => d.id === id);
     const item = index !== -1 ? dataRef.current[index] : undefined;
     if (item) {
@@ -224,14 +238,18 @@ const CustomDraggableFlatList = ({
     }
   };
 
-  const moveItem = (fromIndex: number, toIndex: number, items: Item[]) => {
+  const moveItem = (
+    fromIndex: number,
+    toIndex: number,
+    items: DraggableFlatListItem[]
+  ) => {
     const mutable = [...items];
     const item = mutable.splice(fromIndex, 1)[0];
     mutable.splice(toIndex, 0, item);
     return mutable;
   };
 
-  const showWhereToDrop = (moveY: number, items: Item[]) => {
+  const showWhereToDrop = (moveY: number, items: DraggableFlatListItem[]) => {
     const item = itemFromTouchPoint(moveY, items);
     setBelow(item);
   };
@@ -240,7 +258,10 @@ const CustomDraggableFlatList = ({
     return moveY - (layoutRef.current?.y || 0) + scrollOffsetY.current;
   };
 
-  const itemFromTouchPoint = (moveY: number, items: Item[]) => {
+  const itemFromTouchPoint = (
+    moveY: number,
+    items: DraggableFlatListItem[]
+  ) => {
     if (!layoutRef.current || !itemLayoutMapRef.current || items.length === 0) {
       return;
     }
@@ -248,9 +269,12 @@ const CustomDraggableFlatList = ({
     return index !== -1 ? items[index] : undefined;
   };
 
-  const itemIndexFromTouchPoint = (moveY: number, items: Item[]) => {
+  const itemIndexFromTouchPoint = (
+    moveY: number,
+    items: DraggableFlatListItem[]
+  ) => {
     const y = posFromPanResponderY(moveY);
-    const index = items.findIndex((d: Item) => {
+    const index = items.findIndex((d: DraggableFlatListItem) => {
       const itemLayout = itemLayoutMapRef.current.get(d.id);
       if (!itemLayout || !layoutRef.current) {
         return false;
@@ -260,7 +284,7 @@ const CustomDraggableFlatList = ({
     return index;
   };
 
-  const dataIndexFromItem = (item: Item) => {
+  const dataIndexFromItem = (item: DraggableFlatListItem) => {
     return dataRef.current.findIndex(d => d.id === item.id);
   };
 
@@ -277,7 +301,10 @@ const CustomDraggableFlatList = ({
     return false;
   };
 
-  const handleScrollToPoint = (moveY: number, items: Item[]) => {
+  const handleScrollToPoint = (
+    moveY: number,
+    items: DraggableFlatListItem[]
+  ) => {
     const cancel = () => {
       callNextScrollToPoint.current.cancel();
     };
@@ -386,34 +413,44 @@ const CustomDraggableFlatList = ({
   }, [below, data, layout?.layout, measureItems, selected, draggingDirection]);
 
   const renderFlatListItem = useCallback(
-    (itemData: FlatListItem) => {
+    ({ item, index }: { item: DraggableFlatListItem; index: number }) => {
       const setRef = (ref: React.RefObject<View>) => {
         // store item ref
-        listItemsRef.current.set(itemData.item.id, ref);
+        listItemsRef.current.set(item.id, ref);
         // and measure item position
-        measureRef(ref, itemData.item.id);
+        measureRef(ref, item.id);
       };
 
       return (
         <DraggableItem
-          itemData={itemData}
+          item={item}
+          itemHeight={itemHeight}
           setRef={setRef}
           below={below?.id}
           userIsScrollingUp={draggingDirection === SCROLL_DIRECTION_UP}
           mode={mode}
         >
           {renderItem({
-            item: itemData.item,
-            drag: drag,
+            item: item,
+            move,
+            index,
           })}
         </DraggableItem>
       );
     },
-    [below?.id, draggingDirection, SCROLL_DIRECTION_UP, mode, renderItem]
+    [
+      itemHeight,
+      below?.id,
+      draggingDirection,
+      SCROLL_DIRECTION_UP,
+      mode,
+      renderItem,
+    ]
   );
 
   const renderFlyingItem = useCallback(() => {
     if (selected && panningRef.current && layout.layout) {
+      const move = () => {};
       return (
         <Animated.View
           style={[
@@ -423,7 +460,7 @@ const CustomDraggableFlatList = ({
             { transform: [{ translateY: pan.y }] },
           ]}
         >
-          {renderItem({ item: selected })}
+          {renderItem({ item: selected, move, index: 1 })}
         </Animated.View>
       );
     } else {
@@ -456,10 +493,11 @@ const CustomDraggableFlatList = ({
       <FlatList
         style={styles.list}
         ref={flatListRef}
-        keyExtractor={(item: Item) => item.id}
+        keyExtractor={(item: DraggableFlatListItem) => item.id}
         data={data}
         extraData={extraData}
         scrollEnabled={true}
+        showsVerticalScrollIndicator={true}
         initialNumToRender={data.length}
         removeClippedSubviews={false}
         scrollEventThrottle={16}
@@ -480,6 +518,7 @@ const styles = StyleSheet.create({
   },
   flying: {
     position: 'absolute',
+    width: '100%',
   },
 });
 

@@ -1,11 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import DraggableFlatList, { Item } from './DraggableFlatList';
+import DraggableFlatList, { DraggableFlatListItem } from './DraggableFlatList';
 
 const ITEM_HEIGHT = 50;
 const ITEM_WIDTH = 300;
 
-type MyItem = Item & {
+type MyItem = DraggableFlatListItem & {
   title?: string;
 };
 
@@ -13,7 +13,6 @@ const INITIAL_DATA = Array.from({ length: 30 }, (_, i) => {
   return {
     id: i + '',
     title: 'Lorem ipsum dolor sit amet ' + i,
-    height: ITEM_HEIGHT,
   };
 });
 
@@ -22,7 +21,7 @@ const App = () => {
 
   // Item move done and new item array received
   const handleMove = useCallback(
-    (fromIndex: number, toIndex: number, items: Item[]) => {
+    ({ items }: { items: DraggableFlatListItem[] }) => {
       setData(items);
     },
     []
@@ -30,27 +29,25 @@ const App = () => {
 
   // Your custom FlatList item
   const MyListItem = React.memo(
-    ({ item, drag }: { item: MyItem; drag?: (id: string) => void }) => {
+    ({ item, move }: { item: MyItem; move: (id: string) => void }) => {
       // Long press fires 'drag' to start item dragging
       const handleLongPress = useCallback(() => {
-        drag && drag(item.id);
-      }, [drag, item.id]);
+        move(item.id);
+      }, [move, item.id]);
       return (
         <TouchableOpacity
           onLongPress={handleLongPress}
           style={styles.itemContainer}
           key={item.id}
         >
-          <Text style={[styles.item, { height: item.height }]}>
-            {item.title}
-          </Text>
+          <Text style={styles.item}>{item.title}</Text>
         </TouchableOpacity>
       );
     }
   );
   const renderItem = useCallback(
-    ({ item, drag }: { item: MyItem; drag?: (id: string) => void }) => {
-      return <MyListItem item={item} drag={drag} />;
+    ({ item, move }: { item: MyItem; move: (id: string) => void }) => {
+      return <MyListItem item={item} move={move} />;
     },
     [MyListItem]
   );
@@ -63,7 +60,8 @@ const App = () => {
         style={styles.list}
         data={data}
         renderItem={renderItem}
-        onHandleMove={handleMove}
+        onMoveEnd={handleMove}
+        itemHeight={ITEM_HEIGHT}
         flyingItemStyle={styles.flying}
       />
       <View style={styles.footer} />

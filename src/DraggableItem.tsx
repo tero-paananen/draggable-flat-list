@@ -1,23 +1,24 @@
-import { FlatListItem } from './DraggableFlatList';
 import React, { useMemo, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { DraggableFlatListItem } from './DraggableFlatList';
 
 const DraggableItem = ({
-  itemData,
+  item,
   children,
   below,
   setRef,
   userIsScrollingUp,
   mode,
+  itemHeight,
 }: {
-  itemData: FlatListItem;
+  item: DraggableFlatListItem;
   children?: JSX.Element;
   below?: string;
   setRef: (ref: React.RefObject<View>) => void;
   userIsScrollingUp: boolean | undefined;
   mode: 'default' | 'expands';
+  itemHeight: number;
 }) => {
-  const { item } = itemData;
   const itemRef = useRef<View>(null);
 
   const isBelow = item.id === below;
@@ -29,14 +30,14 @@ const DraggableItem = ({
   const style = useMemo(() => {
     if (mode === 'default') {
       const color = isBelow ? '#ededed' : 'transparent';
-      return { ...{ backgroundColor: color }, ...{ height: item.height } };
+      return { ...{ backgroundColor: color }, ...{ height: itemHeight } };
     } else {
-      const height = isBelow ? item.height * 2 : item.height;
+      const height = isBelow ? itemHeight * 2 : itemHeight;
       return Boolean(userIsScrollingUp) === true
         ? [styles.up, { height: height }]
         : [styles.down, { height: height }];
     }
-  }, [isBelow, item.height, mode, userIsScrollingUp]);
+  }, [isBelow, itemHeight, mode, userIsScrollingUp]);
 
   return (
     <View style={style} ref={itemRef} onLayout={handleLayout}>
