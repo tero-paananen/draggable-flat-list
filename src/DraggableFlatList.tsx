@@ -93,7 +93,7 @@ const CustomDraggableFlatList = ({
   const scrollAnimationRunning = useRef(false);
   const scrollOffsetY = useRef(0);
 
-  const panTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const panTimeoutRef = useRef<number | null>(null);
 
   const SCROLL_ITEM_AMOUNT = 2;
   const SCROLL_DIRECTION_UP = -1;
@@ -468,7 +468,7 @@ const CustomDraggableFlatList = ({
           style={[
             styles.flying,
             flyingItemStyle,
-            { top: -layout.layout.y * 1.5 },
+            { top: -layout.layout.y - itemHeight * 0.5 },
             { transform: [{ translateY: pan.y }] },
           ]}
         >
@@ -478,7 +478,7 @@ const CustomDraggableFlatList = ({
     } else {
       return null;
     }
-  }, [flyingItemStyle, layout.layout, pan.y, renderItem, selected]);
+  }, [flyingItemStyle, itemHeight, layout.layout, pan.y, renderItem, selected]);
 
   const handleLayout = useCallback(() => {
     containerRef.current?.measureInWindow((x, y, width, height) => {
