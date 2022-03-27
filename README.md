@@ -22,27 +22,31 @@ Not tested in production.
 - `mode` Two different item drop position indicators. `default` shows position using background color below target item or `expands` that expands other items to show where item will be dropped
 - `style` container view style of FlatList
 - `data` items for FlatList these have to implement `Item` type
-- `renderItem` function `({item, drag})` for rendering your item into FlatList. Call `drag` to start item dragging
-- `onHandleMove` called when item is moved into new position. New `items` data is as argument.
+- `renderItem` function `({item, move})` for rendering your item into FlatList. Call `move` to start item dragging
+- `onMoveEnd` called when item is moved into new position. New `items` data is as argument.
 - `flyingItemStyle` style for item that is under dragging and is flying on FlatList
 
 ## Usage
 
 ```
+type MyItem = DraggableFlatListItem & {
+  title?: string;
+};
+
 const App = () => {
   const [data, setData] = useState<MyItem[]>(INITIAL_DATA);
 
   // Item move done and new item array received
-  const handleMove = useCallback(
-    (fromIndex: number, toIndex: number, items: Item[]) => {
+   const handleMove = useCallback(
+    ({ items }: { items: DraggableFlatListItem[] }) => {
       setData(items);
     },
-    [],
+    []
   );
 
   // Your custom FlatList item
   const MyListItem = React.memo(
-    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
+    ({ item, drag }: { item: MyItem; drag?: (id: string) => void }) => {
       // Long press fires 'drag' to start item dragging
       const handleLongPress = useCallback(() => {
         drag && drag(item.id);
@@ -58,8 +62,8 @@ const App = () => {
     },
   );
   const renderItem = useCallback(
-    ({item, drag}: {item: MyItem; drag?: (id: string) => void}) => {
-      return <MyListItem item={item} drag={drag} />;
+    ({ item, move }: { item: MyItem; move: (id: string) => void }) => {
+      return <MyListItem item={item} move={move} />;
     },
     [],
   );
@@ -72,7 +76,8 @@ const App = () => {
         style={styles.list}
         data={data}
         renderItem={renderItem}
-        onHandleMove={handleMove}
+        onMoveEnd={handleMoveEnd}
+        itemHeight={50}
         flyingItemStyle={styles.flying}
       />
       <View style={styles.footer} />
