@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import DraggableFlatList, { DraggableFlatListItem } from './DraggableFlatList';
 
-const ITEM_HEIGHT = 50;
+const ITEM_HEIGHT = 60;
 const ITEM_WIDTH = 300;
 
 type MyItem = DraggableFlatListItem & {
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   item: {
-    paddingTop: 10,
+    paddingTop: 22,
     height: ITEM_HEIGHT,
     width: ITEM_WIDTH,
     textAlign: 'center',
