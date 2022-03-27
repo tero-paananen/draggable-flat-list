@@ -93,6 +93,8 @@ const CustomDraggableFlatList = ({
   const scrollAnimationRunning = useRef(false);
   const scrollOffsetY = useRef(0);
 
+  const panTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const SCROLL_ITEM_AMOUNT = 2;
   const SCROLL_DIRECTION_UP = -1;
   const SCROLL_DIRECTION_DOWN = 1;
@@ -110,6 +112,11 @@ const CustomDraggableFlatList = ({
       onStartShouldSetPanResponderCapture: (event: any) => {
         const { pageX, pageY } = event.nativeEvent;
         pan.setValue({ x: pageX, y: pageY });
+
+        panTimeoutRef.current && clearTimeout(panTimeoutRef.current);
+        panTimeoutRef.current = setTimeout(() => {
+          endPanning();
+        }, 3000);
 
         return false;
       },
@@ -132,6 +139,10 @@ const CustomDraggableFlatList = ({
         if (!layoutRef.current) {
           return;
         }
+
+        panTimeoutRef.current && clearTimeout(panTimeoutRef.current);
+        panTimeoutRef.current = null;
+
         const { moveX, moveY } = gestureState;
         if (startMoveYRef.current === -1) {
           startMoveYRef.current = moveY;
