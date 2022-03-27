@@ -81,6 +81,7 @@ const CustomDraggableFlatList = ({
 
   const dataRef = useRef<DraggableFlatListItem[]>([]);
   const flatListRef = useRef<FlatList | null>(null);
+  const containerRef = useRef<View | null>(null);
 
   const previousOffsetY = useRef(0);
   const panningRef = useRef(false);
@@ -468,8 +469,10 @@ const CustomDraggableFlatList = ({
     }
   }, [flyingItemStyle, layout.layout, pan.y, renderItem, selected]);
 
-  const handleLayout = useCallback((e: any) => {
-    setLayout({ layout: e.nativeEvent.layout });
+  const handleLayout = useCallback(() => {
+    containerRef.current?.measureInWindow((x, y, width, height) => {
+      setLayout({ layout: { y, height } });
+    });
   }, []);
 
   const handleScroll = useCallback((e: any) => {
@@ -487,6 +490,7 @@ const CustomDraggableFlatList = ({
   return (
     <View
       style={containerStyle}
+      ref={containerRef}
       {...panResponder.panHandlers}
       onLayout={handleLayout}
     >
