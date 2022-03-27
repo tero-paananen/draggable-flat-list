@@ -46,11 +46,11 @@ const App = () => {
 
   // Your custom FlatList item
   const MyListItem = React.memo(
-    ({ item, drag }: { item: MyItem; drag?: (id: string) => void }) => {
-      // Long press fires 'drag' to start item dragging
+    ({ item, move }: { item: MyItem; move: (id: string) => void }) => {
+      // Long press fires 'move' to start item dragging
       const handleLongPress = useCallback(() => {
-        drag && drag(item.id);
-      }, [drag, item.id]);
+        move(item.id);
+      }, [move, item.id]);
       return (
         <TouchableOpacity
           onLongPress={handleLongPress}
