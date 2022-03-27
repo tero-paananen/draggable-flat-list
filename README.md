@@ -56,7 +56,7 @@ const App = () => {
           onLongPress={handleLongPress}
           style={styles.itemContainer}
           key={item.id}>
-          <Text style={[styles.item, {height: item.height}]}>{item.title}</Text>
+          <Text style={styles.item}>{item.title}</Text>
         </TouchableOpacity>
       );
     },
