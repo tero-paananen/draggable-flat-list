@@ -21,7 +21,7 @@ const DraggableItem = ({
 }) => {
   const itemRef = useRef<View>(null);
 
-  const isBelow = item.id === below;
+  const isBelow = item.key === below;
 
   const handleLayout = useCallback(() => {
     setRef(itemRef);

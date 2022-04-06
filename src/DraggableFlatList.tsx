@@ -19,7 +19,7 @@ import debounce from 'lodash/debounce';
 import DraggableItem from './DraggableItem';
 
 export type DraggableFlatListItem = {
-  id: string;
+  key: string;
 };
 
 type Layout = { y: number; height: number };
@@ -241,8 +241,8 @@ const CustomDraggableFlatList = ({
     callNextScrollToPoint.current.cancel();
   };
 
-  const move = (id: string) => {
-    const index = dataRef.current.findIndex(d => d.id === id);
+  const move = (key: string) => {
+    const index = dataRef.current.findIndex(d => d.key === key);
     const item = index !== -1 ? dataRef.current[index] : undefined;
     if (item) {
       panningRef.current = true;
@@ -287,7 +287,7 @@ const CustomDraggableFlatList = ({
   ) => {
     const y = posFromPanResponderY(moveY);
     const index = items.findIndex((d: DraggableFlatListItem) => {
-      const itemLayout = itemLayoutMapRef.current.get(d.id);
+      const itemLayout = itemLayoutMapRef.current.get(d.key);
       if (!itemLayout || !layoutRef.current) {
         return false;
       }
@@ -297,7 +297,7 @@ const CustomDraggableFlatList = ({
   };
 
   const dataIndexFromItem = (item: DraggableFlatListItem) => {
-    return dataRef.current.findIndex(d => d.id === item.id);
+    return dataRef.current.findIndex(d => d.key === item.key);
   };
 
   const isMovingEnought = (moveY: number) => {
@@ -428,9 +428,9 @@ const CustomDraggableFlatList = ({
     ({ item, index }: { item: DraggableFlatListItem; index: number }) => {
       const setRef = (ref: React.RefObject<View>) => {
         // store item ref
-        listItemsRef.current.set(item.id, ref);
+        listItemsRef.current.set(item.key, ref);
         // and measure item position
-        measureRef(ref, item.id);
+        measureRef(ref, item.key);
       };
 
       return (
@@ -438,7 +438,7 @@ const CustomDraggableFlatList = ({
           item={item}
           itemHeight={itemHeight}
           setRef={setRef}
-          below={below?.id}
+          below={below?.key}
           userIsScrollingUp={draggingDirection === SCROLL_DIRECTION_UP}
           mode={mode}
         >
@@ -452,7 +452,7 @@ const CustomDraggableFlatList = ({
     },
     [
       itemHeight,
-      below?.id,
+      below?.key,
       draggingDirection,
       SCROLL_DIRECTION_UP,
       mode,
@@ -508,7 +508,7 @@ const CustomDraggableFlatList = ({
       <FlatList
         style={styles.list}
         ref={flatListRef}
-        keyExtractor={(item: DraggableFlatListItem) => item.id}
+        keyExtractor={(item: DraggableFlatListItem) => item.key}
         data={data}
         extraData={extraData}
         scrollEnabled={true}

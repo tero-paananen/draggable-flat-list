@@ -11,7 +11,7 @@ type MyItem = DraggableFlatListItem & {
 
 const INITIAL_DATA = Array.from({ length: 30 }, (_, i) => {
   return {
-    id: i + '',
+    key: i + '',
     title: 'Lorem ipsum dolor sit amet ' + i,
   };
 });
@@ -29,16 +29,16 @@ const App = () => {
 
   // Your custom FlatList item
   const MyListItem = React.memo(
-    ({ item, move }: { item: MyItem; move: (id: string) => void }) => {
+    ({ item, move }: { item: MyItem; move: (key: string) => void }) => {
       // Long press fires 'drag' to start item dragging
       const handleLongPress = useCallback(() => {
-        move(item.id);
-      }, [move, item.id]);
+        move(item.key);
+      }, [move, item.key]);
       return (
         <TouchableOpacity
           onLongPress={handleLongPress}
           style={styles.itemContainer}
-          key={item.id}
+          key={item.key}
         >
           <Text style={styles.item}>{item.title}</Text>
         </TouchableOpacity>
@@ -46,7 +46,7 @@ const App = () => {
     }
   );
   const renderItem = useCallback(
-    ({ item, move }: { item: MyItem; move: (id: string) => void }) => {
+    ({ item, move }: { item: MyItem; move: (key: string) => void }) => {
       return <MyListItem item={item} move={move} />;
     },
     [MyListItem]
