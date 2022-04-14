@@ -2,6 +2,16 @@ import React, { useMemo, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { DraggableFlatListItem } from './DraggableFlatList';
 
+type DraggableItemType = {
+  item: DraggableFlatListItem;
+  children?: JSX.Element;
+  below?: string;
+  setRef: (ref: React.RefObject<View>) => void;
+  userIsScrollingUp: boolean | undefined;
+  mode: 'default' | 'expands';
+  itemHeight: number;
+};
+
 const DraggableItem = ({
   item,
   children,
@@ -10,15 +20,7 @@ const DraggableItem = ({
   userIsScrollingUp,
   mode,
   itemHeight,
-}: {
-  item: DraggableFlatListItem;
-  children?: JSX.Element;
-  below?: string;
-  setRef: (ref: React.RefObject<View>) => void;
-  userIsScrollingUp: boolean | undefined;
-  mode: 'default' | 'expands';
-  itemHeight: number;
-}) => {
+}: DraggableItemType) => {
   const itemRef = useRef<View>(null);
 
   const isBelow = item.key === below;

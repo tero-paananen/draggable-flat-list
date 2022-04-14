@@ -23,17 +23,8 @@ export type DraggableFlatListItem = {
 };
 
 type Layout = { y: number; height: number };
-type ItemLayout = { id: string; y: number; height: number };
-
-const CustomDraggableFlatList = ({
-  data,
-  renderItem,
-  style,
-  onMoveEnd,
-  flyingItemStyle,
-  mode = 'default',
-  itemHeight = 50,
-}: {
+type ItemLayout = { key: string; y: number; height: number };
+type DraggableFlatListType = {
   data: DraggableFlatListItem[];
   renderItem: ({
     item,
@@ -41,7 +32,7 @@ const CustomDraggableFlatList = ({
     index,
   }: {
     item: DraggableFlatListItem;
-    move: (id: string) => void;
+    move: (key: string) => void;
     index: number;
   }) => JSX.Element;
   style: StyleProp<ViewStyle>;
@@ -57,7 +48,30 @@ const CustomDraggableFlatList = ({
   flyingItemStyle: StyleProp<ViewStyle>;
   mode?: 'default' | 'expands';
   itemHeight: number;
-}) => {
+  keyExtractor?: (item: DraggableFlatListItem, index: number) => string;
+  testID?: string;
+  showsVerticalScrollIndicator?: boolean;
+  keyboardShouldPersistTaps?:
+    | boolean
+    | 'always'
+    | 'never'
+    | 'handled'
+    | undefined;
+};
+
+const DraggableFlatList = ({
+  data,
+  renderItem,
+  style,
+  onMoveEnd,
+  flyingItemStyle,
+  mode = 'default',
+  itemHeight = 50,
+  keyExtractor,
+  testID,
+  showsVerticalScrollIndicator,
+  keyboardShouldPersistTaps,
+}: DraggableFlatListType) => {
   const [below, setBelow] = useState<DraggableFlatListItem | undefined>(
     undefined
   );
@@ -93,7 +107,7 @@ const CustomDraggableFlatList = ({
   const scrollAnimationRunning = useRef(false);
   const scrollOffsetY = useRef(0);
 
-  const panTimeoutRef = useRef<number | null>(null);
+  const panTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const SCROLL_ITEM_AMOUNT = 2;
   const SCROLL_DIRECTION_UP = -1;
@@ -391,19 +405,19 @@ const CustomDraggableFlatList = ({
 
   const measureItems = useCallback(() => {
     // measure all item refs positions
-    for (const id of listItemsRef.current.keys()) {
-      const ref = listItemsRef.current.get(id);
+    for (const key of listItemsRef.current.keys()) {
+      const ref = listItemsRef.current.get(key);
       if (ref) {
-        measureRef(ref, id);
+        measureRef(ref, key);
       }
     }
   }, []);
 
-  const measureRef = (ref: React.RefObject<View>, id: string) => {
+  const measureRef = (ref: React.RefObject<View>, key: string) => {
     ref.current?.measureInWindow(
       (x: number, y: number, width: number, height: number) => {
-        itemLayoutMapRef.current.set(id, {
-          id,
+        itemLayoutMapRef.current.set(key, {
+          key,
           y: y + scrollOffsetY.current - (layoutRef.current?.y || 0),
           height,
         });
@@ -498,6 +512,9 @@ const CustomDraggableFlatList = ({
     return { below, selected };
   }, [below, selected]);
 
+  const internalKeyExtractor = (item: DraggableFlatListItem, index: number) =>
+    `draggable-flatlist-item-${item.key}`;
+
   return (
     <View
       style={containerStyle}
@@ -508,16 +525,18 @@ const CustomDraggableFlatList = ({
       <FlatList
         style={styles.list}
         ref={flatListRef}
-        keyExtractor={(item: DraggableFlatListItem) => item.key}
+        keyExtractor={keyExtractor || internalKeyExtractor}
         data={data}
         extraData={extraData}
         scrollEnabled={true}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={showsVerticalScrollIndicator}
         initialNumToRender={data.length}
         removeClippedSubviews={false}
         scrollEventThrottle={16}
+        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         onScroll={handleScroll}
         renderItem={renderFlatListItem}
+        testID={testID}
       />
       {renderFlyingItem()}
     </View>
@@ -537,4 +556,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomDraggableFlatList;
+export default DraggableFlatList;
