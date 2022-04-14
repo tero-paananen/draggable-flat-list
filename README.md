@@ -2,11 +2,14 @@
 
 React Native FlatList component whose items can be drag into new positions. This component **does NOT use** [React Native Reanimated](https://github.com/software-mansion/react-native-reanimated) or [React Native Gesture Handler](https://github.com/software-mansion/react-native-gesture-handler) and that is why this works also on React Native Windows.
 
-Tested on platforms: Windows, iOS, Android
+Tested on platforms: Windows, iOS, Web, (not yet Android)
 
 Not tested in production.
 
----
+
+## How to use
+
+Currently you have to copy files `DraggableFlatList.tsx` and `DraggableItem.tsx` into your typescript project. This repo is mainly example application project that contains these components.
 
 ## Development env
 
