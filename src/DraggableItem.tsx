@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, LayoutAnimation, Platform } from 'react-native';
 import { DraggableFlatListItem } from './DraggableFlatList';
 
 type DraggableItemType = {
@@ -34,6 +34,7 @@ const DraggableItem = ({
       const color = isBelow ? '#ededed' : 'transparent';
       return { ...{ backgroundColor: color }, ...{ height: itemHeight } };
     } else {
+      Platform.OS === 'ios' && isBelow && LayoutAnimation.easeInEaseOut();
       const height = isBelow ? itemHeight * 2 : itemHeight;
       return Boolean(userIsScrollingUp) === true
         ? [styles.up, { height: height }]
