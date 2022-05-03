@@ -43,7 +43,7 @@ const DraggableItem = ({
     const height = isBelow && mode === 'expands' ? itemHeight * 2 : itemHeight;
     Animated.spring(animatedHeightRef.current, {
       toValue: height,
-      useNativeDriver: Platform.OS !== 'windows',
+      useNativeDriver: false, // if enabled => "error: Style property 'height' is not supported by native animated module"
     }).start();
   }, [isBelow, itemHeight, mode]);
 
