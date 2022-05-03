@@ -1,5 +1,5 @@
-import React, { useMemo, useCallback, useRef } from 'react';
-import { View, StyleSheet, LayoutAnimation, Platform } from 'react-native';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import { View, StyleSheet, Animated, ViewStyle, Platform } from 'react-native';
 import { DraggableFlatListItem } from './DraggableFlatList';
 
 type DraggableItemType = {
@@ -22,30 +22,35 @@ const DraggableItem = ({
   itemHeight,
 }: DraggableItemType) => {
   const itemRef = useRef<View>(null);
-
   const isBelow = item.key === below;
+  const color = isBelow ? '#ededed' : 'transparent';
+
+  const baseStyle =
+    mode === 'default'
+      ? { ...{ backgroundColor: color }, ...{ height: itemHeight } }
+      : Boolean(userIsScrollingUp) === true
+      ? styles.up
+      : styles.down;
+
+  const animatedHeightRef = useRef(new Animated.Value(itemHeight));
+  const style = { ...baseStyle, height: animatedHeightRef.current };
 
   const handleLayout = useCallback(() => {
     setRef(itemRef);
   }, [setRef]);
 
-  const style = useMemo(() => {
-    if (mode === 'default') {
-      const color = isBelow ? '#ededed' : 'transparent';
-      return { ...{ backgroundColor: color }, ...{ height: itemHeight } };
-    } else {
-      Platform.OS === 'ios' && isBelow && LayoutAnimation.easeInEaseOut();
-      const height = isBelow ? itemHeight * 2 : itemHeight;
-      return Boolean(userIsScrollingUp) === true
-        ? [styles.up, { height: height }]
-        : [styles.down, { height: height }];
-    }
-  }, [isBelow, itemHeight, mode, userIsScrollingUp]);
+  useEffect(() => {
+    const height = isBelow && mode === 'expands' ? itemHeight * 2 : itemHeight;
+    Animated.spring(animatedHeightRef.current, {
+      toValue: height,
+      useNativeDriver: Platform.OS !== 'windows',
+    }).start();
+  }, [isBelow, itemHeight, mode]);
 
   return (
-    <View style={style} ref={itemRef} onLayout={handleLayout}>
+    <Animated.View style={style} ref={itemRef} onLayout={handleLayout}>
       {children}
-    </View>
+    </Animated.View>
   );
 };
 
