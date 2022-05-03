@@ -92,10 +92,8 @@ const App = () => {
 
 ## Videos
 
-https://user-images.githubusercontent.com/54746036/158882249-dabd6906-a1db-4863-8edf-7dafc4dcd7f6.mov
+https://user-images.githubusercontent.com/54746036/166445251-d06e347b-c46d-4669-96e3-fac516379778.mov
 
-
-https://user-images.githubusercontent.com/54746036/158882277-ecbd8123-85b8-4b73-9b29-3a8bcde7e9ba.mov
 
 
 
