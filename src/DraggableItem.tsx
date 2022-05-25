@@ -29,8 +29,8 @@ const DraggableItem = ({
     mode === 'default'
       ? { ...{ backgroundColor: color }, ...{ height: itemHeight } }
       : Boolean(userIsScrollingUp) === true
-      ? styles.up
-      : styles.down;
+      ? StyleSheet.flatten(styles.up)
+      : StyleSheet.flatten(styles.down);
 
   const animatedHeightRef = useRef(new Animated.Value(itemHeight));
   const style = { ...baseStyle, height: animatedHeightRef.current };
